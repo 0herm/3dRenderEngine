@@ -6,7 +6,7 @@ ctx.font = "18px Source Code Pro";
 let a = canvas.height/ canvas.width;
 let FOV = 70;
 let f = 1 / Math.tan( (FOV * Math.PI / 180) /2); 
-let zFar = 100;
+let zFar = 10;
 let zNear = 1;
 let q = zFar / (zFar - zNear);
 
@@ -22,7 +22,31 @@ let keysToggle = new Set();
 
 
 
+class Triangle {
 
+    constructor(x1, y1, x2, y2, x3, y3) {
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.x3 = x3;
+        this.y3 = y3;
+        this.projectionPoints = [
+            [0, 0],
+            [0, 0],
+            [0, 0]
+        ]
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.moveTo(this.projectionPoints[0][0], this.projectionPoints[0][1]);
+        ctx.lineTo(this.projectionPoints[1][0], this.projectionPoints[1][1]);
+        ctx.lineTo(this.projectionPoints[2][0], this.projectionPoints[2][1]);
+        ctx.fill();
+    }
+}
+let t = new Triangle(1,1,2,2,1,3);
 
 
 let objects = [];
@@ -83,34 +107,6 @@ let direction = {
         }
 };
 objects.push(direction);
-
-/*
-let ground = {
-    points: [
-        [ 1,   0, -1,   1 ],
-        [ 1,   0, -100, 1 ],
-        [ 100, 0, -100, 1 ],
-        [ 100, 0, -1,   1 ]
-        
-    ],
-    projectionPoints: [
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0]
-    ],
-    draw: function() {
-        ctx.beginPath();
-
-        ctx.moveTo(this.projectionPoints[0][0], this.projectionPoints[0][1]);
-        ctx.lineTo(this.projectionPoints[1][0], this.projectionPoints[1][1]);
-        ctx.lineTo(this.projectionPoints[2][0], this.projectionPoints[2][1]);
-        ctx.lineTo(this.projectionPoints[3][0], this.projectionPoints[3][1]);
-        ctx.fill();
-    }
-};
-objects.push(ground);
-*/
 
 
 
@@ -181,7 +177,7 @@ function draw() {
                 let y = projection2d[1] / projection2d[3];
                 let z = projection2d[2] / projection2d[3];
 
-                if ( x > -1 && x < 1 && y > -1 && y < 1 && z > -1 && z < 1){
+                if ( x > -1 && x < 1 && y > -1 && y < 1 && z < 1){
                     
                     x =  (( x + 1 ) * canvas.width / 2);
                     y =  (( y + 1 ) * canvas.height / 2);
@@ -201,7 +197,7 @@ function draw() {
     }
 
     if (keysToggle.has("KeyQ")){
-        ctx.fillText("XYZ: " + parseInt(tx) + "," + parseInt(ty) + "," + parseInt(tz), 10, 20);
+        ctx.fillText("XYZ: " + parseInt(-tx) + "," + parseInt(-ty) + "," + parseInt(-tz), 10, 20);
         ctx.fillText("angle X: " + parseInt((angleY / (Math.PI / 180)) % 360), 10, 40);
         ctx.fillText("angle Y: " + parseInt(angleX / (Math.PI / 180)), 10, 60);
         ctx.fillText("zFar zNear: " + zFar + "," + zNear, 10, 80);
@@ -242,14 +238,13 @@ canvas.addEventListener("click", async () => {
 
 document.addEventListener('mousemove', function(e){
     if ( Math.cos(angleX - e.movementY / 100) > 0 ){
-        angleX -= e.movementY / 100;
+        angleX += e.movementY / 100;
     } 
     else if (  Math.cos(angleX) > 0 ) {
         if ( e.movementY < 0 ) {
-            angleX = -0.5*Math.PI;
-        }else{
             angleX = Math.PI/2;
-            
+        }else{
+            angleX = -0.5*Math.PI;
         }
     }
     angleY -= e.movementX / 100;
@@ -266,16 +261,16 @@ function keyLoop(projectionMatrixInvers, rotateMatrixInvers) {
         d = [0,0,-0.1,0];
     }
     if (keysPressed.has("KeyA")) {
-        d = [0.1,0,0,0];
-    }
-    else if (keysPressed.has("KeyD")){
         d = [-0.1,0,0,0];
     }
+    else if (keysPressed.has("KeyD")){
+        d = [0.1,0,0,0];
+    }
     if (keysPressed.has("ShiftLeft")) {
-        ty -= 0.1;
+        ty += 0.1;
     }
     else if (keysPressed.has("Space")){
-        ty += 0.1;
+        ty -= 0.1;
     }
 
     let dr = matrixMultipliation(projectionMatrixInvers, d);
