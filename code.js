@@ -46,7 +46,7 @@ class Triangle {
         ctx.fill();
     }
 }
-let t = new Triangle(1,1,2,2,1,3);
+let testTriangle = new Triangle(1,1,2,2,1,3);
 
 
 let objects = [];
@@ -81,7 +81,7 @@ let box = {
             }
         }
 };
-objects.push(box);
+//objects.push(box);
 
 let direction = {
     points: [
@@ -106,9 +106,23 @@ let direction = {
             ctx.fillText("Z", this.projectionPoints[3][0], this.projectionPoints[3][1]);
         }
 };
-objects.push(direction);
+//objects.push(direction);
 
-
+let testLine = {
+    points: [
+        [1, 0, 5, 1 ],
+        [3, 0, 5, 1 ]
+        ],
+        projectionPoints: [
+            [0, 0],
+            [0, 0]
+        ],
+        draw: function() {
+            
+                line(this.projectionPoints[0], this.projectionPoints[1]);
+        }
+};
+objects.push(testLine);
 
 
 
@@ -177,7 +191,7 @@ function draw() {
                 let y = projection2d[1] / projection2d[3];
                 let z = projection2d[2] / projection2d[3];
 
-                if ( x > -1 && x < 1 && y > -1 && y < 1 && z < 1){
+                if ( x > -1 && x < 1 && y > -1 && y < 1 && z < 1 && z > -1){
                     
                     x =  (( x + 1 ) * canvas.width / 2);
                     y =  (( y + 1 ) * canvas.height / 2);
@@ -185,14 +199,27 @@ function draw() {
                     projectionP.push([x,y]);
                     point(x, y);
 
+                }else{
+                    let otherPointIndex = 0;
+                    if (j == 0){
+                        otherPointIndex = 1;
+                    }
+                    let t1 = matrixMultipliation(translationMatrix, objects[i].points[otherPointIndex]);
+                    let r1 = matrixMultipliation(rotateMatrix,t1);
+                    let p2d = matrixMultipliation(projectionMatrix, r1);
+
+                    let intersection = pointOfIntersectionPlane([x,y,z],[p2d[0]/p2d[3],p2d[1]/p2d[3],p2d[2]/p2d[3]])
+
+                    x =  (( intersection[0] + 1 ) * canvas.width / 2);
+                    y =  (( intersection[1] + 1 ) * canvas.height / 2);
+
+                    projectionP.push([x,y]);
+                    point(x, y);
                 }
             }
         }
-
-        if (projectionP.length == objects[i].projectionPoints.length){
-            objects[i].projectionPoints = projectionP;
-            objects[i].draw();
-        }
+        objects[i].projectionPoints = projectionP;
+        objects[i].draw();
 
     }
 
@@ -215,7 +242,25 @@ requestAnimationFrame(draw);
 
 
 
+function pointOfIntersectionPlane(p1,p2){
+    let lineV = [p2[0]-p1[0], p2[1]-p1[1], p2[2]-p1[2]];
+    
+    let Pn = [1,0,0];
+    let Pp = [-1,0,0];
 
+    let dotProduct = lineV[0] * Pn[0] + lineV[1] * Pn[1] + lineV[2] * Pn[2]; 
+
+    if (dotProduct == 0){
+        return false;
+    }else {
+        
+        let t = ((Pp[0]-p1[0])*Pn[0] + (Pp[1]-p1[1])*Pn[1] + (Pp[2]-p1[2])*Pn[2]) / dotProduct;
+
+        let instersectionPoint = [p1[0]+lineV[0]*t, p1[1]+lineV[1]*t, p1[2]+lineV[2]*t];
+
+        return instersectionPoint;
+    }
+}
 
 
 document.addEventListener("keydown", (event) => {
