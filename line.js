@@ -106,19 +106,18 @@ let direction = {
             ctx.fillText("Z", this.projectionPoints[3][0], this.projectionPoints[3][1]);
         }
 };
-//objects.push(direction);
+objects.push(direction);
 
 let testLine = {
     points: [
-        [2, 1, 5, 1 ],
-        [4, 1, 5, 1 ]
+        [2, 1, 5, 1],
+        [4, 1, 5, 1]
         ],
         projectionPoints: [
             [0, 0],
             [0, 0]
         ],
         draw: function() {
-            
                 line(this.projectionPoints[0], this.projectionPoints[1]);
         }
 };
@@ -177,50 +176,65 @@ function draw() {
 
     for(let i = 0; i < objects.length; i++ ){
 
-        let projectionP = [];
+        let normalizedPoints = [];
+        let pointsInsideView = 0;
         
         for(let j = 0; j < objects[i].points.length; j++) { 
             
             let translation = matrixMultipliation(translationMatrix, objects[i].points[j]);
             let rotate = matrixMultipliation(rotateMatrix,translation);
-            let projection2d = matrixMultipliation(projectionMatrix, rotate);
+            let normalizedProjection = matrixMultipliation(projectionMatrix, rotate);
 
-            if (projection2d[3] != 0){
+            if (normalizedProjection[3] != 0){
 
-                let x = projection2d[0] / projection2d[3];
-                let y = projection2d[1] / projection2d[3];
-                let z = projection2d[2] / projection2d[3];
+                let x = normalizedProjection[0] / normalizedProjection[3];
+                let y = normalizedProjection[1] / normalizedProjection[3];
+                let z = normalizedProjection[2] / normalizedProjection[3];
 
+                normalizedPoints.push([x,y,z]);
+
+                if ( x > -1 && x < 1 && y > -1 && y < 1 && z < 1 && z > -1){
+                    pointsInsideView++; 
+                }
+            }
+        }
+
+        if ( pointsInsideView > 0){
+            for ( k = 0; k < normalizedPoints.length; k++ ){
+
+                let x = normalizedPoints[k][0];
+                let y = normalizedPoints[k][1];
+                let z = normalizedPoints[k][2];
+                
                 if ( x > -1 && x < 1 && y > -1 && y < 1 && z < 1 && z > -1){
                     
                     x =  (( x + 1 ) * canvas.width / 2);
                     y =  (( y + 1 ) * canvas.height / 2);
 
-                    projectionP.push([x,y]);
-                    point(x, y);
-
+                    objects[i].projectionPoints[k] = [x,y];
                 }else{
-                    let otherPointIndex = 0;
-                    if (j == 0){
-                        otherPointIndex = 1;
+                    let nextPoint = 0;
+                    if (k == 0){
+                        nextPoint = 1;
                     }
-                    let t1 = matrixMultipliation(translationMatrix, objects[i].points[otherPointIndex]);
-                    let r1 = matrixMultipliation(rotateMatrix,t1);
-                    let p2d = matrixMultipliation(projectionMatrix, r1);
 
-                    let intersection = pointOfIntersectionPlane([x,y,z],[p2d[0]/p2d[3],p2d[1]/p2d[3],p2d[2]/p2d[3]])
+                    let x2 = normalizedPoints[nextPoint][0];
+                    let y2 = normalizedPoints[nextPoint][1];
+                    let z2 = normalizedPoints[nextPoint][2];
+                    
+                    let intersection = pointOfIntersectionPlane([x,y,z],[x2,y2,z2]);
 
-                    x =  (( intersection[0] + 1 ) * canvas.width / 2);
-                    y =  (( intersection[1] + 1 ) * canvas.height / 2);
+                    if ( intersection != false ){
+                        x =  (( intersection[0] + 1 ) * canvas.width / 2);
+                        y =  (( intersection[1] + 1 ) * canvas.height / 2);
 
-                    projectionP.push([x,y]);
-                    point(x, y);
+                        objects[i].projectionPoints[k] = [x,y];
+                    }
                 }
-            }
-        }
-        objects[i].projectionPoints = projectionP;
-        objects[i].draw();
 
+            }
+            objects[i].draw();
+        }
     }
 
     if (keysToggle.has("KeyQ")){
@@ -244,28 +258,63 @@ requestAnimationFrame(draw);
 
 function pointOfIntersectionPlane(p1,p2){
     let lineV = [p2[0]-p1[0], p2[1]-p1[1], p2[2]-p1[2]];
-    
-    console.log("x1:" + parseFloat(p1[0]) + " x2:" + parseFloat(p2[0]) + " L:" + lineV[0]);
 
-    let Pn = [1,0,0];
-    let Pp = [-1,0,0];
+    let PpList = [[[-1,0,0],[1,0,0]],[[0,-1,0],[0,1,0]],[[0,0,1],[0,0,-1]]];
+    let PnList = [[[1,0,0],[-1,0,0]],[[0,1,0],[0,-1,0]],[[0,0,-1],[0,0,1]]];
 
-    if ( lineV[0] < 0 ){
-        Pn = [-1,0,0];
-        Pp = [1,0,0];
-    } 
+    let intersectionCheckIndex = 0;
 
-    let dotProduct = lineV[0] * Pn[0] + lineV[1] * Pn[1] + lineV[2] * Pn[2]; 
+    while(intersectionCheckIndex < 3){
 
-    if (dotProduct == 0){
-        return false;
-    }else {
+        let direction = 0;
+        if (lineV[intersectionCheckIndex] < 0){
+            direction = 1;
+        } 
+
+        let sent = false;
         
-        let t = ((Pp[0]-p1[0])*Pn[0] + (Pp[1]-p1[1])*Pn[1] + (Pp[2]-p1[2])*Pn[2]) / dotProduct;
+        let Pp = PpList[intersectionCheckIndex][direction];
+        let Pn = PnList[intersectionCheckIndex][direction]; 
 
-        let instersectionPoint = [p1[0]+lineV[0]*t, p1[1]+lineV[1]*t, p1[2]+lineV[2]*t];
+        let dotProduct = lineV[0] * Pn[0] + lineV[1] * Pn[1] + lineV[2] * Pn[2];
 
-        return instersectionPoint;
+        if (dotProduct != 0){
+            let t = ((Pp[0]-p1[0])*Pn[0] + (Pp[1]-p1[1])*Pn[1] + (Pp[2]-p1[2])*Pn[2]) / dotProduct;
+
+            let instersectionPoint = [p1[0]+lineV[0]*t, p1[1]+lineV[1]*t, p1[2]+lineV[2]*t];
+
+            if ( intersectionCheckIndex == 0
+                && instersectionPoint[0] >= -1 && instersectionPoint[0] <= 1
+                && instersectionPoint[1] >= -1 && instersectionPoint[1] <= 1 )
+            {
+                intersectionCheckIndex = 6;
+                sent = true;
+                return instersectionPoint;
+            }
+
+            else if ( intersectionCheckIndex == 1
+                      && instersectionPoint[2] >= -1 && instersectionPoint[2] <= 1
+                      && instersectionPoint[0] >= -1 && instersectionPoint[0] <= 1 )
+            {
+                intersectionCheckIndex = 6;
+                sent = true;
+                return instersectionPoint;
+            }
+
+            else if ( intersectionCheckIndex == 2
+                && instersectionPoint[1] >= -1 && instersectionPoint[1] <= 1
+                && instersectionPoint[2] >= -1 && instersectionPoint[2] <= 1 )
+            {
+                intersectionCheckIndex = 6;
+                sent = true;
+                return instersectionPoint;
+            }
+
+            intersectionCheckIndex++;
+        }
+        if ( sent == false) {
+            return false;
+        }
     }
 }
 
@@ -289,14 +338,14 @@ canvas.addEventListener("click", async () => {
 });
 
 document.addEventListener('mousemove', function(e){
-    if ( Math.cos(angleX - e.movementY / 100) > 0 ){
+    if ( Math.cos(angleX + e.movementY / 100) > 0 ){
         angleX += e.movementY / 100;
     } 
-    else if (  Math.cos(angleX) > 0 ) {
+    else if ( Math.cos(angleX) < 0 ) {
         if ( e.movementY < 0 ) {
-            angleX = Math.PI/2;
+            angleX = 3*Math.PI/2;
         }else{
-            angleX = -0.5*Math.PI;
+            angleX = Math.PI/2;
         }
     }
     angleY -= e.movementX / 100;
