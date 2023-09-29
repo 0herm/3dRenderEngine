@@ -3,6 +3,8 @@ ctx.canvas.width = window.innerWidth;
 ctx.canvas.height = window.innerHeight;
 ctx.font = "18px Source Code Pro";
 
+// Global vars 
+
 let a = canvas.height / canvas.width;
 let FOV = 70;
 let f = 1 / Math.tan((FOV * Math.PI / 180) / 2);
@@ -10,88 +12,31 @@ let zFar = 10;
 let zNear = 1;
 let q = zFar / (zFar - zNear);
 
+// Camera pos 
 let tx = 0;
 let ty = 0;
 let tz = 10;
 
+// Camera angle
 let angleX = 0;
 let angleY = 180 * Math.PI / 180;
 
 let keysPressed = new Set();
 let keysToggle = new Set();
 
+
+// Objects
+
 let objects = [];
-
-class Triangle {
-
-    constructor(x1, y1, z1, x2, y2, z2, x3, y3, z3) {
-        this.points = [
-            [x1,y1,z1,1],
-            [x2,y2,z2,1],
-            [x3,y3,z3,1]
-        ]
-        this.projectionPoints = [
-            [0, 0],
-            [0, 0],
-            [0, 0]
-        ]
-    }
-
-    draw() {
-        ctx.beginPath();
-        ctx.moveTo(this.projectionPoints[0][0], this.projectionPoints[0][1]);
-        ctx.lineTo(this.projectionPoints[1][0], this.projectionPoints[1][1]);
-        ctx.lineTo(this.projectionPoints[2][0], this.projectionPoints[2][1]);
-        ctx.fill();
-    }
-}
-let testTriangle = new Triangle(1,1,5,2,2,5,1,3,5);
-//objects.push(testTriangle);
-
-let box = {
-    points: [
-        [-1, -1, 10, 1],
-        [1, -1, 10, 1],
-        [1, 1, 10, 1],
-        [-1, 1, 10, 1],
-        [-1, -1, 8, 1],
-        [1, -1, 8, 1],
-        [1, 1, 8, 1],
-        [-1, 1, 8, 1]
-    ],
-    projectionPoints: [
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0]
-    ],
-    draw: function () {
-
-        for (let numLines = 0; numLines < 4; numLines++) {
-            line(this.projectionPoints[numLines], this.projectionPoints[(numLines + 1) % 4]);
-            line(this.projectionPoints[numLines + 4], this.projectionPoints[(numLines + 5) % 4 + 4]);
-            line(this.projectionPoints[numLines], this.projectionPoints[numLines + 4]);
-        }
-    }
-};
-objects.push(box);
 
 let directionX = {
     points: [
         [0, 0, 0, 1],
         [5, 0, 0, 1]
     ],
-    projectionPoints: [
-        [0, 0],
-        [0, 0]
-    ],
-    draw: function () {
-        line(this.projectionPoints[0], this.projectionPoints[1]);
-        ctx.fillText("X", this.projectionPoints[1][0], this.projectionPoints[1][1]);
+    draw: function (points) {
+        line(points[0], points[1]);
+        ctx.fillText("X", points[1][0], points[1][1]);
     }
 };
 objects.push(directionX);
@@ -101,13 +46,9 @@ let directionY = {
         [0, 0, 0, 1],
         [0, 5, 0, 1]
     ],
-    projectionPoints: [
-        [0, 0],
-        [0, 0]
-    ],
-    draw: function () {
-        line(this.projectionPoints[0], this.projectionPoints[1]);
-        ctx.fillText("Y", this.projectionPoints[1][0], this.projectionPoints[1][1]);
+    draw: function (points) {
+        line(points[0], points[1]);
+        ctx.fillText("Y", points[1][0], points[1][1]);
     }
 };
 objects.push(directionY);
@@ -117,65 +58,13 @@ let directionZ = {
         [0, 0, 0, 1],
         [0, 0, 5, 1]
     ],
-    projectionPoints: [
-        [0, 0],
-        [0, 0]
-    ],
-    draw: function () {
-        line(this.projectionPoints[0], this.projectionPoints[1]);
-        ctx.fillText("Z", this.projectionPoints[1][0], this.projectionPoints[1][1]);
+    draw: function (points) {
+        line(points[0], points[1]);
+        ctx.fillText("Z", points[1][0], points[1][1]);
     }
 };
 objects.push(directionZ);
 
-let ground = {
-    points: [
-        [0, 0, 0, 1],
-        [5,  0, 0, 1],
-        [5,  0,  5, 1],
-        [0, 0,  5, 1]
-    ],
-    projectionPoints: [
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0]
-    ],
-    draw: function () {
-        ctx.beginPath();
-        ctx.moveTo(this.projectionPoints[0][0], this.projectionPoints[0][1]);
-        ctx.lineTo(this.projectionPoints[1][0], this.projectionPoints[1][1]);
-        ctx.lineTo(this.projectionPoints[2][0], this.projectionPoints[2][1]);
-        ctx.lineTo(this.projectionPoints[3][0], this.projectionPoints[3][1]);
-        ctx.fill();
-    }
-};
-//objects.push(ground);
-
-let clock = {
-    points: [
-        [10, 10, 1, 1],
-        [10, 10, 1, 1],
-        [10, 10, 1, 1],
-        [10, 10, 1, 1],
-        [10, 10, 1, 1],
-        [10, 10, 1, 1]
-    ],
-    projectionPoints: [
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0]
-    ],
-    draw: function () {
-        line(this.projectionPoints[0], this.projectionPoints[1]);
-        line(this.projectionPoints[2], this.projectionPoints[3]);
-        line(this.projectionPoints[4], this.projectionPoints[5]);
-    }
-};
-objects.push(clock);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -184,35 +73,8 @@ function draw() {
     let cosY = Math.cos(angleY);
     let sinX = Math.sin(angleX);
     let sinY = Math.sin(angleY);
-
-
-    let d = new Date();
-    let hour = d.getHours();
-    let min = d.getMinutes();
-    let sec = d.getSeconds();
-
-    let deg = (sec)*6-270;
-    let deg2 = (min + (sec/60))*6-270;
-    let deg3 = (hour + (min/60))*6-270;
     
-    let toRad = (deg/360)*(2*Math.PI);
-    let xpos = 5 * Math.cos(toRad);
-    let ypos = 5 * Math.sin(toRad);
-    clock.points[1][0] = 10 - xpos;
-    clock.points[1][1] = 10 + ypos;  
-
-    let toRad2 = (deg2/360)*(2*Math.PI);
-    let xpos2 = 4 * Math.cos(toRad2);
-    let ypos2 = 4 * Math.sin(toRad2);
-    clock.points[3][0] = 10 - xpos2;
-    clock.points[3][1] = 10 + ypos2;
-
-    let toRad3 = (deg3/360)*(2*Math.PI);
-    let xpos3 = 3 * Math.cos(toRad3);
-    let ypos3 = 3 * Math.sin(toRad3);
-    clock.points[5][0] = 10 - xpos3;
-    clock.points[5][1] = 10 + ypos3;  
-    
+    // Matrixes
     let projectionMatrix = [
         [a * f, 0,  0,       0],
         [0,     f,  0,       0],
@@ -249,50 +111,45 @@ function draw() {
     ];
 
     keyLoop(projectionMatrixInvers, rotateMatrixInvers);
-
+    
+    // Every object
     for (let i = 0; i < objects.length; i++) {
-        let projectionPoints = []
-    
-        for (let j = 0; j < objects[i].points.length; j++) {
-    
-            let translation = matrixMultipliation(translationMatrix, objects[i].points[j]);
-            let rotate = matrixMultipliation(rotateMatrix, translation);
-            let projection = matrixMultipliation(projectionMatrix, rotate);
         
-            projectionPoints.push(projection);
-    
-        }
-        ctx.fillText("X: " + sinY * cosX, 10, 20);
-        ctx.fillText("Y: " + sinX * cosY, 10, 40);
-        ctx.fillText("Z: " + cosY, 10, 60);
-
-        for (k = 0; k < projectionPoints.length; k++) {
+        let depthClippedPoints = [];
+        let normalizedPoints = [];
+        let projectionPoints = [];
+        
+        // Depth Clipping
+        for (k = 0; k <  objects[i].points.length; k++) {
             
             let point1 = { 
-                x: projectionPoints[k][0],
-                y: projectionPoints[k][1],
-                z: projectionPoints[k][2],
-                w: projectionPoints[k][3] 
+                x: frustumPoints[k][0],
+                y: frustumPoints[k][1],
+                z: frustumPoints[k][2],
+                w: frustumPoints[k][3] 
             };
-    
+            
             if (point1.z < 0) {
+                
+                let x = point1.x / point1.w;
+                let y = point1.y / point1.w;
+                let z = point1.z / point1.w;
     
-                let x = ((point1.x/point1.w + 1) * canvas.width / 2);
-                let y = ((point1.y/point1.w + 1) * canvas.height / 2);
-    
-                objects[i].projectionPoints[k] = [x, y];
+                normalizedPoints.push([x, y, z]);
     
             } else {
+                
                 let nextPoint = (k + 1) % 2;
                 
                 let point2 = { 
-                    x: projectionPoints[nextPoint][0],
-                    y: projectionPoints[nextPoint][1], 
-                    z: projectionPoints[nextPoint][2], 
-                    w: projectionPoints[nextPoint][3] 
+                    x: frustumPoints[nextPoint][0],
+                    y: frustumPoints[nextPoint][1], 
+                    z: frustumPoints[nextPoint][2], 
+                    w: frustumPoints[nextPoint][3] 
                 };
                 
                 if (point2.z < 0) {
+
                     let d = -(sinY * cosX * tx + sinY * sinX * ty + cosY * tz)
         
                     let nearPlaneNormal = [
@@ -303,21 +160,57 @@ function draw() {
                     ]; 
         
                     let intersection = linePlaneIntersection(point1, point2, nearPlaneNormal);
-        
+
                     if (intersection != null) {
-                        if (intersection.length > 0){
-                            console.log(point1.w);
-                            let x = ((intersection[0].x/point1.w + 1) * canvas.width / 2);
-                            let y = ((intersection[0].y/point1.w + 1) * canvas.height / 2);
+                        if (intersection){
+
+                            let x = intersection.x / (intersection.z-1);
+                            let y = intersection.y / (intersection.z-1);
+                            let z = intersection.z;
+
+                            ctx.fillText("Nx: " + x, 10, 20);
+                            ctx.fillText("Ny: " + y, 10, 40);
+                            ctx.fillText("Nz: " + z, 10, 60);
+                            ctx.fillText("W: " + (intersection.z-1), 10, 80);
+
+                            ctx.fillText("x: " + intersection.x, 10, 100);
+                            ctx.fillText("y: " + intersection.y, 10, 120);
+                            ctx.fillText("z: " + intersection.z, 10, 140);
         
-                            objects[i].projectionPoints[k] = [x, y];
+                            normalizedPoints.push([x, y, z]);
                         }   
                     }
                 }
             }
         }
 
-        objects[i].draw();
+        // Matrix multiplications
+        for (let j = 0; j < depthClippedPoints.length; j++) {
+    
+            let translation = matrixMultipliation(translationMatrix, depthClippedPoints[j]);
+            let rotate = matrixMultipliation(rotateMatrix, translation);
+            let projection = matrixMultipliation(projectionMatrix, rotate);
+        
+            frustumPoints.push(projection);
+    
+        }
+
+        // Clipping
+        for (l = 0; l < normalizedPoints.length; l++){
+
+            let x = normalizedPoints[l][0];
+            let y = normalizedPoints[l][1];
+            let z = normalizedPoints[l][2];
+
+            projectionPoints.push([ ((x + 1) * canvas.width / 2) , ((y + 1) * canvas.height / 2) ]);
+
+        }
+
+        // Draw
+        if( projectionPoints.length > 0){
+            //console.log(projectionPoints);
+            objects[i].draw(projectionPoints);
+        }
     }
     
 
@@ -328,14 +221,20 @@ function draw() {
         ctx.fillText("zFar zNear: " + zFar + "," + zNear, 10, 80);
         ctx.fillText("FOV: " + FOV, 10, 100);
         ctx.fillText("Keys: " + Array.from(keysPressed).join(' '), 10, 120);
-    }
 
+        ctx.fillText("P:X: " + sinY * cosX, 10, 140);
+        ctx.fillText("P:Y: " + sinX * cosY, 10, 160);
+        ctx.fillText("P:Z: " + cosY, 10, 180);
+    }
+    
     requestAnimationFrame(draw);
 }
 
 requestAnimationFrame(draw);
 
+// Functions
 
+// Intersections
 function linePlaneIntersection(p1, p2, plane) {
     let [a,b,c,d] = plane;
     
@@ -358,20 +257,18 @@ function linePlaneIntersection(p1, p2, plane) {
 
 function intersectionView(p1, p2) {
     let cubePlanes = [
-        [1, 0, 0, 1], 
-        [-1, 0, 0, 1],
-        [0, 1, 0, 1], // Top 
-        [0, -1, 0, 1], // Bottom
-        [0, 0, -1, 1], 
-        [0, 0, 1, 1],
+        [ 1,  0,  0, 1], // Right
+        [-1,  0,  0, 1], // left
+        [ 0,  1,  0, 1], // Top 
+        [ 0, -1,  0, 1]  // Bottom
     ];
 
-    let directions = [p1.x <= -1,p1.y <= -1, p1.z <= -1];
+    let directions = [p1.x <= -1,p1.y <= -1];
 
     let intersectionIndex = 0;
     let intersectionPoints = [];
 
-    while (intersectionIndex < 6) {
+    while (intersectionIndex < 4) {
 
         let lineDirection = 0;
     
@@ -382,7 +279,13 @@ function intersectionView(p1, p2) {
         let pointOfIntersection = linePlaneIntersection(p1, p2, cubePlanes[intersectionIndex + lineDirection]);
 
         if (pointOfIntersection){
-            intersectionPoints.push(pointOfIntersection);
+            let inPlaneX = pointOfIntersection.x <= 1 && pointOfIntersection.x >= -1;
+            let inPlaneY = pointOfIntersection.y <= 1 && pointOfIntersection.y >= -1;
+            let inPlaneZ = pointOfIntersection.z <= 1 && pointOfIntersection.z >= -1;
+            
+            if (inPlaneX && inPlaneY && inPlaneZ){
+                intersectionPoints.push(pointOfIntersection);
+            }
         }
 
         intersectionIndex += 2;
@@ -391,6 +294,7 @@ function intersectionView(p1, p2) {
     return intersectionPoints;
 }
 
+// Key down
 function keyLoop(projectionMatrixInvers, rotateMatrixInvers) {
     let d = [0, 0, 0, 0];
     if (keysPressed.has("KeyW")) {
@@ -421,6 +325,7 @@ function keyLoop(projectionMatrixInvers, rotateMatrixInvers) {
     tz += dw[2];
 }
 
+// Matrix Multipliation
 function matrixMultipliation(projection, vertex) {
     let result = [];
     
@@ -434,6 +339,7 @@ function matrixMultipliation(projection, vertex) {
     return result;
 }
 
+// Draw line and point
 function point(x, y) {
     ctx.beginPath();
     ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
@@ -447,7 +353,7 @@ function line(p1, p2) {
     ctx.stroke();
 }
 
-
+// Events
 document.addEventListener("keydown", (event) => {
     keysPressed.add(event.code);
 
