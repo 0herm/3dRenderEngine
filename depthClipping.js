@@ -39,7 +39,7 @@ let directionX = {
         ctx.fillText("X", points[1][0], points[1][1]);
     }
 };
-objects.push(directionX);
+//objects.push(directionX);
 
 let directionY = {
     points: [
@@ -63,7 +63,7 @@ let directionZ = {
         ctx.fillText("Z", points[1][0], points[1][1]);
     }
 };
-objects.push(directionZ);
+//objects.push(directionZ);
 
 
 function draw() {
@@ -123,32 +123,28 @@ function draw() {
         for (k = 0; k <  objects[i].points.length; k++) {
             
             let point1 = { 
-                x: frustumPoints[k][0],
-                y: frustumPoints[k][1],
-                z: frustumPoints[k][2],
-                w: frustumPoints[k][3] 
+                x: objects[i].points[k][0],
+                y: objects[i].points[k][1],
+                z: objects[i].points[k][2],
+                w: objects[i].points[k][3] 
             };
-            
-            if (point1.z < 0) {
-                
-                let x = point1.x / point1.w;
-                let y = point1.y / point1.w;
-                let z = point1.z / point1.w;
+
+            if (point1.z >= 0) {
     
-                normalizedPoints.push([x, y, z]);
+                depthClippedPoints.push([point1.x, point1.y, point1.z, point1.w]);
     
             } else {
                 
                 let nextPoint = (k + 1) % 2;
                 
                 let point2 = { 
-                    x: frustumPoints[nextPoint][0],
-                    y: frustumPoints[nextPoint][1], 
-                    z: frustumPoints[nextPoint][2], 
-                    w: frustumPoints[nextPoint][3] 
+                    x: objects[i].points[nextPoint][0],
+                    y: objects[i].points[nextPoint][1], 
+                    z: objects[i].points[nextPoint][2], 
+                    w: objects[i].points[nextPoint][3] 
                 };
                 
-                if (point2.z < 0) {
+                if (point2.z >= 0) {
 
                     let d = -(sinY * cosX * tx + sinY * sinX * ty + cosY * tz)
         
@@ -164,20 +160,12 @@ function draw() {
                     if (intersection != null) {
                         if (intersection){
 
-                            let x = intersection.x / (intersection.z-1);
-                            let y = intersection.y / (intersection.z-1);
+                            let x = intersection.x;
+                            let y = intersection.y;
                             let z = intersection.z;
-
-                            ctx.fillText("Nx: " + x, 10, 20);
-                            ctx.fillText("Ny: " + y, 10, 40);
-                            ctx.fillText("Nz: " + z, 10, 60);
-                            ctx.fillText("W: " + (intersection.z-1), 10, 80);
-
-                            ctx.fillText("x: " + intersection.x, 10, 100);
-                            ctx.fillText("y: " + intersection.y, 10, 120);
-                            ctx.fillText("z: " + intersection.z, 10, 140);
+                            let w = 1;
         
-                            normalizedPoints.push([x, y, z]);
+                            depthClippedPoints.push([x, y, z, w]);
                         }   
                     }
                 }
@@ -186,12 +174,18 @@ function draw() {
 
         // Matrix multiplications
         for (let j = 0; j < depthClippedPoints.length; j++) {
-    
             let translation = matrixMultipliation(translationMatrix, depthClippedPoints[j]);
             let rotate = matrixMultipliation(rotateMatrix, translation);
             let projection = matrixMultipliation(projectionMatrix, rotate);
         
-            frustumPoints.push(projection);
+            if (projection[3] != 0) {
+    
+                let x = projection[0] / projection[3];
+                let y = projection[1] / projection[3];
+                let z = projection[2] / projection[3];
+        
+                normalizedPoints.push([x,y,z]);
+            }
     
         }
 
@@ -208,7 +202,6 @@ function draw() {
 
         // Draw
         if( projectionPoints.length > 0){
-            //console.log(projectionPoints);
             objects[i].draw(projectionPoints);
         }
     }
