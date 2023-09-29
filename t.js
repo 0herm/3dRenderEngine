@@ -3,6 +3,8 @@ ctx.canvas.width = window.innerWidth;
 ctx.canvas.height = window.innerHeight;
 ctx.font = "18px Source Code Pro";
 
+// Global vars 
+
 let a = canvas.height / canvas.width;
 let FOV = 70;
 let f = 1 / Math.tan((FOV * Math.PI / 180) / 2);
@@ -10,15 +12,20 @@ let zFar = 10;
 let zNear = 1;
 let q = zFar / (zFar - zNear);
 
+// Camera pos 
 let tx = 0;
 let ty = 0;
 let tz = 10;
 
+// Camera angle
 let angleX = 0;
 let angleY = 180 * Math.PI / 180;
 
 let keysPressed = new Set();
 let keysToggle = new Set();
+
+
+// Objects
 
 let objects = [];
 
@@ -67,6 +74,7 @@ function draw() {
     let sinX = Math.sin(angleX);
     let sinY = Math.sin(angleY);
     
+    // Matrixes
     let projectionMatrix = [
         [a * f, 0,  0,       0],
         [0,     f,  0,       0],
@@ -104,6 +112,7 @@ function draw() {
 
     keyLoop(projectionMatrixInvers, rotateMatrixInvers);
     
+    // Every object
     for (let i = 0; i < objects.length; i++) {
         
         let normalizedPoints = [];
@@ -202,7 +211,6 @@ function draw() {
             //console.log(projectionPoints);
             objects[i].draw(projectionPoints);
         }
-
     }
     
 
@@ -224,7 +232,9 @@ function draw() {
 
 requestAnimationFrame(draw);
 
+// Functions
 
+// Intersections
 function linePlaneIntersection(p1, p2, plane) {
     let [a,b,c,d] = plane;
     
@@ -284,6 +294,7 @@ function intersectionView(p1, p2) {
     return intersectionPoints;
 }
 
+// Key down
 function keyLoop(projectionMatrixInvers, rotateMatrixInvers) {
     let d = [0, 0, 0, 0];
     if (keysPressed.has("KeyW")) {
@@ -314,6 +325,7 @@ function keyLoop(projectionMatrixInvers, rotateMatrixInvers) {
     tz += dw[2];
 }
 
+// Matrix Multipliation
 function matrixMultipliation(projection, vertex) {
     let result = [];
     
@@ -327,6 +339,7 @@ function matrixMultipliation(projection, vertex) {
     return result;
 }
 
+// Draw line and point
 function point(x, y) {
     ctx.beginPath();
     ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
@@ -340,7 +353,7 @@ function line(p1, p2) {
     ctx.stroke();
 }
 
-
+// Events
 document.addEventListener("keydown", (event) => {
     keysPressed.add(event.code);
 
