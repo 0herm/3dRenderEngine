@@ -78,7 +78,7 @@ let box = {
         }
     }
 };
-//objects.push(box);
+objects.push(box);
 
 let directionX = {
     points: [

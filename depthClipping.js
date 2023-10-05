@@ -19,7 +19,7 @@ let tz = 10;
 
 // Camera angle
 let angleX = 0;
-let angleY = 180 * Math.PI / 180;
+let angleY = 0;
 
 let keysPressed = new Set();
 let keysToggle = new Set();
@@ -39,7 +39,7 @@ let directionX = {
         ctx.fillText("X", points[1][0], points[1][1]);
     }
 };
-//objects.push(directionX);
+objects.push(directionX);
 
 let directionY = {
     points: [
@@ -63,7 +63,7 @@ let directionZ = {
         ctx.fillText("Z", points[1][0], points[1][1]);
     }
 };
-//objects.push(directionZ);
+objects.push(directionZ);
 
 
 function draw() {
@@ -79,7 +79,7 @@ function draw() {
         [a * f, 0,  0,       0],
         [0,     f,  0,       0],
         [0,     0,  q,       1],
-        [0,     0,  zNear*q, 0]
+        [0,     0,  -zNear*q, 0]
     ];
 
     let projectionMatrixInvers = [
@@ -103,11 +103,12 @@ function draw() {
         [0,          0,    0,          1]
     ];
 
+
     let rotateMatrixInvers = [
-        [rotateMatrix[0][0],  rotateMatrix[1][0], rotateMatrix[2][0], 0],
-        [rotateMatrix[0][1],  rotateMatrix[1][1], rotateMatrix[2][1], 0],
-        [rotateMatrix[0][2],  rotateMatrix[1][2], rotateMatrix[2][2], 0],
-        [0,                   0,                  0,                  0]
+        [cosY, 0, -sinY, 0],
+        [0,    1, 0,     0],
+        [sinY, 0, cosY,  0],
+        [0,    0, 0,     0]
     ];
 
     keyLoop(projectionMatrixInvers, rotateMatrixInvers);
@@ -129,8 +130,19 @@ function draw() {
                 w: objects[i].points[k][3] 
             };
 
-            if (point1.z >= 0) {
-    
+            let pointV = [point1.x - tx*-1, point1.y - ty*-1, point1.z - tz*-1];
+            let normalV = [-1* sinY * cosX, sinX * cosY, cosY];
+            let dot = pointV[0] * normalV[0] + pointV[1] * normalV[1] + pointV[2] * normalV[2];
+
+            if (i == 1 && k == 1 && keysToggle.has("KeyQ")){
+                ctx.fillText("cPos: x:" + tx*-1 + " y:" + ty*-1 + " z:" + tz*-1, 10, 200);
+                ctx.fillText("pPos: x:" + point1.x + " y:" + point1.y + " z:" + point1.z, 10, 220);
+                ctx.fillText("pVect: x:" + pointV[0] + " y:" + pointV[1] + " z:" + pointV[2], 10, 240);
+                ctx.fillText("nVect: x:" + normalV[0] + " y:" + normalV[1] + " z:" + normalV[2], 10, 260);
+                ctx.fillText("dot: a:" + pointV[0] * normalV[0] + " b:" + pointV[1] * normalV[1] + " c:" + pointV[2] * normalV[2] + " s:" + dot, 10, 280);
+            }
+
+            if (dot >= 0) {
                 depthClippedPoints.push([point1.x, point1.y, point1.z, point1.w]);
     
             } else {
@@ -143,19 +155,22 @@ function draw() {
                     z: objects[i].points[nextPoint][2], 
                     w: objects[i].points[nextPoint][3] 
                 };
-                
-                if (point2.z >= 0) {
 
-                    let d = -(sinY * cosX * tx + sinY * sinX * ty + cosY * tz)
-        
-                    let nearPlaneNormal = [
+                let pointV2 = [point2.x - tx*-1, point2.y - ty*-1, point2.z - tz*-1];
+                let dot2 = pointV2[0] * normalV[0] + pointV2[1] * normalV[1] + pointV2[2] * normalV[2];
+                
+                if (dot2 >= 0) {   
+                    
+                    let d = -(sinY * cosX * tx + sinX * cosY * ty + cosY * tz);
+
+                    let nearPlane = [
                         sinY * cosX * tx,
-                        sinY * sinX * ty,
+                        sinX * cosY * ty,
                         cosY * tz,
                         d
-                    ]; 
+                    ];   
         
-                    let intersection = linePlaneIntersection(point1, point2, nearPlaneNormal);
+                    let intersection = linePlaneIntersection(point1, point2, nearPlane);
 
                     if (intersection != null) {
                         if (intersection){
@@ -183,7 +198,9 @@ function draw() {
                 let x = projection[0] / projection[3];
                 let y = projection[1] / projection[3];
                 let z = projection[2] / projection[3];
-        
+                if (i == 1 && j == 1){
+                    //console.log(projection[2]);
+                }
                 normalizedPoints.push([x,y,z]);
             }
     
@@ -201,13 +218,13 @@ function draw() {
         }
 
         // Draw
-        if( projectionPoints.length > 0){
+        if( projectionPoints.length > 1){
             objects[i].draw(projectionPoints);
         }
     }
     
-
-    if (keysToggle.has("KeyQ")) {
+    // Information
+    if(keysToggle.has("KeyQ")){
         ctx.fillText("XYZ: " + parseInt(-tx) + "," + parseInt(-ty) + "," + parseInt(-tz), 10, 20);
         ctx.fillText("angle X: " + parseInt((angleY / (Math.PI / 180)) % 360), 10, 40);
         ctx.fillText("angle Y: " + parseInt(angleX / (Math.PI / 180)), 10, 60);
@@ -219,8 +236,11 @@ function draw() {
         ctx.fillText("P:Y: " + sinX * cosY, 10, 160);
         ctx.fillText("P:Z: " + cosY, 10, 180);
     }
-    
-    requestAnimationFrame(draw);
+    console.log("d");
+    // Call animation
+    if(keysToggle.has("KeyX") == false){
+        requestAnimationFrame(draw);
+    }
 }
 
 requestAnimationFrame(draw);
@@ -291,10 +311,10 @@ function intersectionView(p1, p2) {
 function keyLoop(projectionMatrixInvers, rotateMatrixInvers) {
     let d = [0, 0, 0, 0];
     if (keysPressed.has("KeyW")) {
-        d = [0, 0, 0.1, 0];
+        d = [0, 0, -0.1, 0];
     }
     else if (keysPressed.has("KeyS")) {
-        d = [0, 0, -0.1, 0];
+        d = [0, 0, 0.1, 0];
     }
     if (keysPressed.has("KeyA")) {
         d = [-0.1, 0, 0, 0];
@@ -366,8 +386,8 @@ canvas.addEventListener("click", async () => {
 });
 
 document.addEventListener('mousemove', function (e) {
-    if (Math.cos(angleX + e.movementY / 100) > 0) {
-        angleX += e.movementY / 100;
+    if (Math.cos(angleX - e.movementY / 100) > 0) {
+        angleX -= e.movementY / 100;
     }
     else if (Math.cos(angleX) < 0) {
         if (e.movementY < 0) {
@@ -376,5 +396,5 @@ document.addEventListener('mousemove', function (e) {
             angleX = Math.PI / 2;
         }
     }
-    angleY -= e.movementX / 100;
+    angleY += e.movementX / 100;
 });
