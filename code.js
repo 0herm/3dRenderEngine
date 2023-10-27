@@ -108,7 +108,7 @@ let box = {
         }
     }
 };
-objects.push(box);
+//objects.push(box);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -163,6 +163,7 @@ function draw() {
         let normalizedPoints = [];
         let projectionPoints = [];
         
+        let count = 0;
         // Depth Clipping Z
         for (k = 0; k <  objects[i].points.length; k++) {
             
@@ -179,17 +180,51 @@ function draw() {
             let distance =  (normalV[0]*point1.x + normalV[1]*point1.y + normalV[2]*point1.z + d) / 
                             ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
 
-            if (i == 1 && k == 1 && keysToggle.has("KeyQ")){
-                ctx.fillText("cPos: x:" + tx + " y:" + ty + " z:" + tz, 10, 200);
-                ctx.fillText("pPos: x:" + point1.x + " y:" + point1.y + " z:" + point1.z, 10, 220);
-                ctx.fillText("nVect: x:" + normalV[0] + " y:" + normalV[1] + " z:" + normalV[2], 10, 260);
-                ctx.fillText("distance:" + distance, 10, 300);
-            }
-
             if (distance < 0){
-                // find intersection 
+                let nextPoint = (k + 1) % 2;
+                
+                let point2 = { 
+                    x: objects[i].points[nextPoint][0],
+                    y: objects[i].points[nextPoint][1], 
+                    z: objects[i].points[nextPoint][2], 
+                    w: objects[i].points[nextPoint][3] 
+                };
+
+                let distancePoint2 =    (normalV[0]*point2.x + normalV[1]*point2.y + normalV[2]*point2.z + d) / 
+                                        ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
+                
+                if (distancePoint2 > 0) {   
+                    let nearPlane = [
+                        normalV[0],
+                        normalV[1],
+                        normalV[2],
+                        d
+                    ];   
+            
+                    let intersection = linePlaneIntersection(point1, point2, nearPlane);
+                    if (intersection != null) {
+                        if (intersection){
+                            let x = intersection.x;
+                            let y = intersection.y;
+                            let z = intersection.z;
+                            let w = 1;
+                            depthClippedPoints.push([x, y, z, w]);
+                        } 
+                    }
+                }
             }else{
                 depthClippedPoints.push([point1.x, point1.y, point1.z, point1.w]);
+            }
+
+            if (i == 1 && k == 1 && keysToggle.has("KeyQ")){
+                ctx.fillText("cPos: x:" + tx + " y:" + ty + " z:" + tz, 10, 200);
+                ctx.fillText("nVect: x:" + normalV[0] + " y:" + normalV[1] + " z:" + normalV[2], 10, 220);
+                if(depthClippedPoints.length > 1){
+                    ctx.fillText("point1: x:" + depthClippedPoints[0][0] + " y:" + depthClippedPoints[0][1] + " z:" + depthClippedPoints[0][2], 10, 240);
+                    ctx.fillText("point1: x:" + depthClippedPoints[1][0] + " y:" + depthClippedPoints[1][1] + " z:" + depthClippedPoints[1][2], 10, 260);
+                }else{
+                    ctx.fillText("point1: x:" + depthClippedPoints[0][0] + " y:" + depthClippedPoints[0][1] + " z:" + depthClippedPoints[0][2], 10, 240);
+                }
             }
         }
 
