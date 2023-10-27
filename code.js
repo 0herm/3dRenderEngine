@@ -88,27 +88,6 @@ let directionZ = {
 };
 objects.push(directionZ);
 
-let box = {
-    points: [
-        [-1, -1, 10, 1],
-        [1, -1, 10, 1],
-        [1, 1, 10, 1],
-        [-1, 1, 10, 1],
-        [-1, -1, 8, 1],
-        [1, -1, 8, 1],
-        [1, 1, 8, 1],
-        [-1, 1, 8, 1]
-    ],
-    draw: function () {
-
-        for (let numLines = 0; numLines < 4; numLines++) {
-            line(this.projectionPoints[numLines], this.projectionPoints[(numLines + 1) % 4]);
-            line(this.projectionPoints[numLines + 4], this.projectionPoints[(numLines + 5) % 4 + 4]);
-            line(this.projectionPoints[numLines], this.projectionPoints[numLines + 4]);
-        }
-    }
-};
-//objects.push(box);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -163,7 +142,6 @@ function draw() {
         let normalizedPoints = [];
         let projectionPoints = [];
         
-        let count = 0;
         // Depth Clipping Z
         for (k = 0; k <  objects[i].points.length; k++) {
             
