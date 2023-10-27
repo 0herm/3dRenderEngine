@@ -195,9 +195,9 @@ function draw() {
                 
                 if (distancePoint2 > 0) {   
                     let nearPlane = [
-                        normalV[0],
-                        normalV[1],
-                        normalV[2],
+                        normalV[0] - 0.0001,
+                        normalV[1] - 0.0001,
+                        normalV[2] - 0.0001,
                         d
                     ];   
             
@@ -222,7 +222,7 @@ function draw() {
                 if(depthClippedPoints.length > 1){
                     ctx.fillText("point1: x:" + depthClippedPoints[0][0] + " y:" + depthClippedPoints[0][1] + " z:" + depthClippedPoints[0][2], 10, 240);
                     ctx.fillText("point1: x:" + depthClippedPoints[1][0] + " y:" + depthClippedPoints[1][1] + " z:" + depthClippedPoints[1][2], 10, 260);
-                }else{
+                }else if(depthClippedPoints.length != 0){
                     ctx.fillText("point1: x:" + depthClippedPoints[0][0] + " y:" + depthClippedPoints[0][1] + " z:" + depthClippedPoints[0][2], 10, 240);
                 }
             }
@@ -234,7 +234,7 @@ function draw() {
             let rotate = matrixMultipliation(rotateMatrix, translation);
             let projection = matrixMultipliation(projectionMatrix, rotate);
         
-            if (projection[3] != 0 && projection[3] < 0) {
+            if (projection[3] < 0) {
     
                 let x = projection[0] / projection[3];
                 let y = projection[1] / projection[3];
@@ -242,7 +242,6 @@ function draw() {
                 
                 normalizedPoints.push([x,y,z]);
             }
-    
         }
 
         // Clipping X, Y
