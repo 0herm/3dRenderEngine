@@ -13,13 +13,13 @@ let zNear = 1;
 let q = zFar / (zFar - zNear);
 
 // Camera pos 
-let tx = 0;
-let ty = 0;
+let tx = 10;
+let ty = 10;
 let tz = 10;
 
 // Camera angle
 let angleX = 0;
-let angleY = 180 * Math.PI / 180;
+let angleY = 320 * Math.PI / 180;
 
 let keysPressed = new Set();
 let keysToggle = new Set();
@@ -32,20 +32,26 @@ class Triangle {
             [x3, y3, z3, 1]
         ];
         this.draw = function (projectionPoints) {
-            ctx.fillStyle = "black";
-            ctx.beginPath();
-            ctx.moveTo(projectionPoints[0][0], projectionPoints[0][1]);
-            ctx.lineTo(projectionPoints[1][0], projectionPoints[1][1]);
-            ctx.lineTo(projectionPoints[2][0], projectionPoints[2][1]);
-            ctx.fill();
+            ctx.fillStyle = "gray";
+            ctx.strokeStyle = "gray";
             
-            if(projectionPoints.length > 3){
-                ctx.fillStyle = "green";
+            if(projectionPoints.length >= 3){
+                ctx.beginPath();
+                ctx.moveTo(projectionPoints[0][0], projectionPoints[0][1]);
+                ctx.lineTo(projectionPoints[1][0], projectionPoints[1][1]);
+                ctx.lineTo(projectionPoints[2][0], projectionPoints[2][1]);
+                ctx.fill();
+                ctx.closePath();
+                ctx.stroke();
+            }
+            if(projectionPoints.length == 6){
                 ctx.beginPath();
                 ctx.moveTo(projectionPoints[3][0], projectionPoints[3][1]);
                 ctx.lineTo(projectionPoints[4][0], projectionPoints[4][1]);
                 ctx.lineTo(projectionPoints[5][0], projectionPoints[5][1]);
                 ctx.fill();
+                ctx.closePath();
+                ctx.stroke();
             }
         };
     }
@@ -60,7 +66,8 @@ objects.push(new Triangle(100,0,100,0,0,100,100,0,0));
 
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "lightblue";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     let informationTab = []; 
 
@@ -140,9 +147,9 @@ function draw() {
         let d = -(normalV[0] * tx + normalV[1] * ty + normalV[2] * tz);
 
         let nearPlane = [
-            normalV[0] - 0.1,
-            normalV[1] - 0.1,
-            normalV[2] - 0.1,
+            normalV[0] - 0.01,
+            normalV[1] - 0.01,
+            normalV[2] - 0.01,
             d
         ];  
         
