@@ -32,11 +32,21 @@ class Triangle {
             [x3, y3, z3, 1]
         ];
         this.draw = function (projectionPoints) {
+            ctx.fillStyle = "black";
             ctx.beginPath();
             ctx.moveTo(projectionPoints[0][0], projectionPoints[0][1]);
             ctx.lineTo(projectionPoints[1][0], projectionPoints[1][1]);
             ctx.lineTo(projectionPoints[2][0], projectionPoints[2][1]);
             ctx.fill();
+            
+            if(projectionPoints.length > 3){
+                ctx.fillStyle = "green";
+                ctx.beginPath();
+                ctx.moveTo(projectionPoints[3][0], projectionPoints[3][1]);
+                ctx.lineTo(projectionPoints[4][0], projectionPoints[4][1]);
+                ctx.lineTo(projectionPoints[5][0], projectionPoints[5][1]);
+                ctx.fill();
+            }
         };
     }
 }
@@ -45,44 +55,8 @@ class Triangle {
 
 let objects = [];
 
-let tri = new Triangle(5,5,0,9,9,0,9,3,0);
-objects.push(tri);
-
-let directionX = {
-    points: [
-        [0, 0, 0, 1],
-        [5, 0, 0, 1]
-    ],
-    draw: function (points) {
-        line(points[0], points[1]);
-        ctx.fillText("X", points[1][0], points[1][1]);
-    }
-};
-objects.push(directionX);
-
-let directionY = {
-    points: [
-        [0, 0, 0, 1],
-        [0, 5, 0, 1]
-    ],
-    draw: function (points) {
-        line(points[0], points[1]);
-        ctx.fillText("Y", points[1][0], points[1][1]);
-    }
-};
-objects.push(directionY);
-
-let directionZ = {
-    points: [
-        [0, 0, 0, 1],
-        [0, 0, 5, 1]
-    ],
-    draw: function (points) {
-        line(points[0], points[1]);
-        ctx.fillText("Z", points[1][0], points[1][1]);
-    }
-};
-objects.push(directionZ);
+objects.push(new Triangle(0,0,0,0,0,100,100,0,0));
+objects.push(new Triangle(100,0,100,0,0,100,100,0,0));
 
 
 function draw() {
@@ -141,57 +115,82 @@ function draw() {
         let projectionPoints = [];
         
         // Depth Clipping Z
-        for (let k = 0; k <  objects[i].points.length; k++) {
-            
-            let point1 = { 
-                x: objects[i].points[k][0],
-                y: objects[i].points[k][1],
-                z: objects[i].points[k][2],
-                w: objects[i].points[k][3] 
-            };
+        let A = { 
+            x: objects[i].points[0][0],
+            y: objects[i].points[0][1],
+            z: objects[i].points[0][2],
+            w: objects[i].points[0][3] 
+        };
 
-            let normalV = [-cosX * sinY, sinX, cosY * cosX];
-            let d = -(normalV[0] * tx + normalV[1] * ty + normalV[2] * tz);
+        let B = { 
+            x: objects[i].points[1][0],
+            y: objects[i].points[1][1],
+            z: objects[i].points[1][2],
+            w: objects[i].points[1][3] 
+        };
 
-            let distance =  (normalV[0]*point1.x + normalV[1]*point1.y + normalV[2]*point1.z + d) / 
-                            ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
+        let C = { 
+            x: objects[i].points[2][0],
+            y: objects[i].points[2][1],
+            z: objects[i].points[2][2],
+            w: objects[i].points[2][3] 
+        };
 
-            if (distance < 0){
-                let nextPoint = (k + 1) % 2;
-                
-                let point2 = { 
-                    x: objects[i].points[nextPoint][0],
-                    y: objects[i].points[nextPoint][1], 
-                    z: objects[i].points[nextPoint][2], 
-                    w: objects[i].points[nextPoint][3] 
-                };
+        let normalV = [-cosX * sinY, sinX, cosY * cosX];
+        let d = -(normalV[0] * tx + normalV[1] * ty + normalV[2] * tz);
 
-                let distancePoint2 =    (normalV[0]*point2.x + normalV[1]*point2.y + normalV[2]*point2.z + d) / 
-                                        ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
-                
-                if (distancePoint2 > 0) {   
-                    let nearPlane = [
-                        normalV[0] - 0.1,
-                        normalV[1] - 0.1,
-                        normalV[2] - 0.1,
-                        d
-                    ];   
-            
-                    let intersection = linePlaneIntersection(point1, point2, nearPlane);
-                    if (intersection != null) {
-                        if (intersection){
-                            let x = intersection.x;
-                            let y = intersection.y;
-                            let z = intersection.z;
-                            let w = 1;
-                            depthClippedPoints.push([x, y, z, w]);
-                        } 
-                    }
-                }
-            }else{
-                depthClippedPoints.push([point1.x, point1.y, point1.z, point1.w]);
+        let nearPlane = [
+            normalV[0] - 0.1,
+            normalV[1] - 0.1,
+            normalV[2] - 0.1,
+            d
+        ];  
+        
+        let distanceA =  (normalV[0]*A.x + normalV[1]*A.y + normalV[2]*A.z + d) / 
+                        ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
+
+        let distanceB =  (normalV[0]*B.x + normalV[1]*B.y + normalV[2]*B.z + d) / 
+                        ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
+
+        let distanceC =  (normalV[0]*C.x + normalV[1]*C.y + normalV[2]*C.z + d) / 
+                        ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
+
+        let infront = [];
+        let behind = [];
+        if(distanceA > 0){infront.push(A);}else{behind.push(A);}
+        if(distanceB > 0){infront.push(B);}else{behind.push(B);}
+        if(distanceC > 0){infront.push(C);}else{behind.push(C);}
+
+        if (infront.length == 3){
+            depthClippedPoints.push([A.x, A.y, A.z, A.w]);
+            depthClippedPoints.push([B.x, B.y, B.z, B.w]);
+            depthClippedPoints.push([C.x, C.y, C.z, C.w]);
+        }
+        else if(infront.length == 2){
+            let intersectionAC = linePlaneIntersection(infront[0], behind[0], nearPlane);
+            let intersectionBC = linePlaneIntersection(infront[1], behind[0], nearPlane);
+
+            if (intersectionAC != null && intersectionBC != null) {
+                depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
+                depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
+                depthClippedPoints.push([infront[1].x, infront[1].y, infront[1].z, 1]);
+
+                depthClippedPoints.push([infront[1].x, infront[1].y, infront[1].z, 1]);
+                depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
+                depthClippedPoints.push([intersectionBC.x, intersectionBC.y, intersectionBC.z, 1]);
+
             }
         }
+        else if(infront.length == 1){
+            let intersectionAB = linePlaneIntersection(infront[0], behind[0], nearPlane);
+            let intersectionAC = linePlaneIntersection(infront[0], behind[1], nearPlane);
+
+            if (intersectionAB != null && intersectionAC != null) {
+                depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
+                depthClippedPoints.push([intersectionAB.x, intersectionAB.y, intersectionAB.z, 1]);
+                depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
+            }
+        }            
 
         // Matrix multiplications
         for (let j = 0; j < depthClippedPoints.length; j++) {
