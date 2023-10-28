@@ -25,32 +25,28 @@ let keysPressed = new Set();
 let keysToggle = new Set();
 
 class Triangle {
-
     constructor(x1, y1, z1, x2, y2, z2, x3, y3, z3) {
         this.points = [
-            [x1,y1,z1,1],
-            [x2,y2,z2,1],
-            [x3,y3,z3,1]
-        ]
-        this.projectionPoints = [
-            [0, 0],
-            [0, 0],
-            [0, 0]
-        ]
-    }
-
-    draw() {
-        ctx.beginPath();
-        ctx.moveTo(this.projectionPoints[0][0], this.projectionPoints[0][1]);
-        ctx.lineTo(this.projectionPoints[1][0], this.projectionPoints[1][1]);
-        ctx.lineTo(this.projectionPoints[2][0], this.projectionPoints[2][1]);
-        ctx.fill();
+            [x1, y1, z1, 1],
+            [x2, y2, z2, 1],
+            [x3, y3, z3, 1]
+        ];
+        this.draw = function (projectionPoints) {
+            ctx.beginPath();
+            ctx.moveTo(projectionPoints[0][0], projectionPoints[0][1]);
+            ctx.lineTo(projectionPoints[1][0], projectionPoints[1][1]);
+            ctx.lineTo(projectionPoints[2][0], projectionPoints[2][1]);
+            ctx.fill();
+        };
     }
 }
-
+  
 // Objects
 
 let objects = [];
+
+let tri = new Triangle(5,5,0,9,9,0,9,3,0);
+objects.push(tri);
 
 let directionX = {
     points: [
@@ -91,6 +87,8 @@ objects.push(directionZ);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let informationTab = []; 
 
     let cosX = Math.cos(angleX);
     let cosY = Math.cos(angleY);
@@ -143,7 +141,7 @@ function draw() {
         let projectionPoints = [];
         
         // Depth Clipping Z
-        for (k = 0; k <  objects[i].points.length; k++) {
+        for (let k = 0; k <  objects[i].points.length; k++) {
             
             let point1 = { 
                 x: objects[i].points[k][0],
@@ -173,9 +171,9 @@ function draw() {
                 
                 if (distancePoint2 > 0) {   
                     let nearPlane = [
-                        normalV[0] - 0.0001,
-                        normalV[1] - 0.0001,
-                        normalV[2] - 0.0001,
+                        normalV[0] - 0.1,
+                        normalV[1] - 0.1,
+                        normalV[2] - 0.1,
                         d
                     ];   
             
@@ -192,17 +190,6 @@ function draw() {
                 }
             }else{
                 depthClippedPoints.push([point1.x, point1.y, point1.z, point1.w]);
-            }
-
-            if (i == 1 && k == 1 && keysToggle.has("KeyQ")){
-                ctx.fillText("cPos: x:" + tx + " y:" + ty + " z:" + tz, 10, 200);
-                ctx.fillText("nVect: x:" + normalV[0] + " y:" + normalV[1] + " z:" + normalV[2], 10, 220);
-                if(depthClippedPoints.length > 1){
-                    ctx.fillText("point1: x:" + depthClippedPoints[0][0] + " y:" + depthClippedPoints[0][1] + " z:" + depthClippedPoints[0][2], 10, 240);
-                    ctx.fillText("point1: x:" + depthClippedPoints[1][0] + " y:" + depthClippedPoints[1][1] + " z:" + depthClippedPoints[1][2], 10, 260);
-                }else if(depthClippedPoints.length != 0){
-                    ctx.fillText("point1: x:" + depthClippedPoints[0][0] + " y:" + depthClippedPoints[0][1] + " z:" + depthClippedPoints[0][2], 10, 240);
-                }
             }
         }
 
@@ -223,7 +210,7 @@ function draw() {
         }
 
         // Clipping X, Y
-        for (l = 0; l < normalizedPoints.length; l++){
+        for (let l = 0; l < normalizedPoints.length; l++){
 
             let x = normalizedPoints[l][0];
             let y = normalizedPoints[l][1];
@@ -240,20 +227,21 @@ function draw() {
     
     // Information
     if(keysToggle.has("KeyQ")){
-        ctx.fillText("XYZ: " + parseInt(-tx) + "," + parseInt(-ty) + "," + parseInt(-tz), 10, 20);
-        ctx.fillText("angle X: " + parseInt((angleY / (Math.PI / 180)) % 360), 10, 40);
-        ctx.fillText("angle Y: " + parseInt(angleX / (Math.PI / 180)), 10, 60);
-        ctx.fillText("zFar zNear: " + zFar + "," + zNear, 10, 80);
-        ctx.fillText("FOV: " + FOV, 10, 100);
-        ctx.fillText("Keys: " + Array.from(keysPressed).join(' '), 10, 120);
-
-        ctx.fillText("P:X: " + sinY * cosX, 10, 140);
-        ctx.fillText("P:Y: " + sinX * cosY, 10, 160);
-        ctx.fillText("P:Z: " + cosY, 10, 180);
+        informationTab.push("XYZ: " + parseInt(tx) + "," + parseInt(ty) + "," + parseInt(tz));
+        informationTab.push("angle X: " + parseInt((angleY / (Math.PI / 180)) % 360));
+        informationTab.push("angle Y: " + parseInt(angleX / (Math.PI / 180)));
+        informationTab.push("zFar zNear: " + zFar + "," + zNear);
+        informationTab.push("FOV: " + FOV);
+        informationTab.push("Keys: " + Array.from(keysPressed).join(' '));
+        
+        for (let m = 0; m < informationTab.length; m++){
+            ctx.fillText(informationTab[m], 10, (m+1)*20);
+        }
+        informationTab = [];
     }
-    
+
     // Call animation
-    if (!keysToggle.has("KeyX")){
+    if(!keysPressed.has("KeyX")){
         requestAnimationFrame(draw);
     }
 }
@@ -385,9 +373,9 @@ function line(p1, p2) {
 document.addEventListener("keydown", (event) => {
     keysPressed.add(event.code);
 
-    if (!keysToggle.has("KeyQ")) {
+    if (!keysToggle.has("KeyQ") && event.code == "KeyQ") {
         keysToggle.add(event.code);
-    } else if (keysToggle.has("KeyQ")) {
+    } else if (keysToggle.has("KeyQ") && event.code == "KeyQ") {
         keysToggle.delete(event.code);
     }
 });
