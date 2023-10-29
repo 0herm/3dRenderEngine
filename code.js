@@ -226,7 +226,7 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     let informationTab = []; 
-
+    
     let cosX = Math.cos(angleX);
     let cosY = Math.cos(angleY);
     let sinX = Math.sin(angleX);
@@ -246,13 +246,6 @@ function draw() {
         [0,                         0,                        1/projectionMatrix[2][2], 0],
         [0,                         0,                        0,                        0]
     ];
-    
-    let translationMatrix = [
-        [1, 0, 0, -tx],
-        [0, 1, 0, -ty],
-        [0, 0, 1, -tz],
-        [0, 0, 0, 1 ]
-    ];
 
     let rotateMatrix = [
         [cosY,       0,    sinY,       0],
@@ -267,6 +260,16 @@ function draw() {
         [sinY, 0, cosY,  0],
         [0,    0, 0,     0]
     ];
+
+    keyLoop(projectionMatrixInvers, rotateMatrixInvers);
+
+    let translationMatrix = [
+        [1, 0, 0, -tx],
+        [0, 1, 0, -ty],
+        [0, 0, 1, -tz],
+        [0, 0, 0, 1 ]
+    ];
+
     
     // Loop every object
     for (let i = 0; i < objects.length; i++) {
@@ -460,7 +463,6 @@ function draw() {
         requestAnimationFrame(draw);
     }
 
-    keyLoop(projectionMatrixInvers, rotateMatrixInvers);
 }
 
 requestAnimationFrame(draw);
