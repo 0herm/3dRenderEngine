@@ -406,7 +406,7 @@ function draw() {
                 ctx.fillStyle = objects[i].color;
 
                 // Wireframe
-                if(keysPressed.has("KeyF") == false){
+                if(keysToggle.has("KeyF") == false){
                     ctx.strokeStyle = objects[i].color;
                 }else{
                     ctx.strokeStyle = "black";
@@ -541,25 +541,25 @@ function line(p1, p2) {
 }
 
 // Events
-document.addEventListener("keydown", (event) => {
+document.onkeydown = function(e){
     keysPressed.add(event.code);
 
-    if (!keysToggle.has("KeyQ") && event.code == "KeyQ") {
+    if (!keysToggle.has(event.code)) {
         keysToggle.add(event.code);
-    } else if (keysToggle.has("KeyQ") && event.code == "KeyQ") {
+    } else if (keysToggle.has(event.code)) {
         keysToggle.delete(event.code);
     }
-});
+};
 
-document.addEventListener("keyup", (event) => {
+document.onkeyup = function(e){
     keysPressed.delete(event.code);
-});
+};
 
-canvas.addEventListener("click", async () => {
+document.onclick = async () => {
     await canvas.requestPointerLock();
-});
+};
 
-document.addEventListener('mousemove', function (e) {
+document.onpointermove = function (e) {
     if (Math.cos(angleX - e.movementY / 100) > 0) {
         angleX -= e.movementY / 100;
     }
@@ -571,7 +571,7 @@ document.addEventListener('mousemove', function (e) {
         }
     }
     angleY += e.movementX / 100;
-});
+};
 
 
 
