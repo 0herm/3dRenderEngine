@@ -37,40 +37,12 @@ class Triangle {
     }
 }
 
-// Test 
-const U = {
-    x: 0 - 0,
-    y: 0 - 0,
-    z: 100 - 0
-};
-
-const V = {
-    x: 100 - 0,
-    y: 0 - 0,
-    z: 0 - 0
-};
-
-const Nx = (U.y * V.z) - (U.z * V.y);
-const Ny = (U.z * V.x) - (U.x * V.z);
-const Nz = (U.x * V.y) - (U.y * V.x);
-
-const N = [Nx, Ny, Nz];
-const magnitude = (N[0]**2 + N[1]**2 + N[2]**2)**0.5;
-const Nn = [N[0]/magnitude, N[1]/magnitude, N[2]/magnitude];
-const Sn = [0,-1,0];
-
-let result = 0;
-for (let i = 0; i < 3; i++) {
-    result += Nn[i] * Sn[i];
-}
-console.log(result);
   
 // Objects
-
 let objects = [];
 
 objects.push(new Triangle(0,0,0,0,0,100,100,0,0,"gray"));
-objects.push(new Triangle(100,0,100,0,0,100,100,0,0,"gray"));
+objects.push(new Triangle(0,0,100,100,0,100,100,0,0,"gray"));
 
 // Space ship
 let vert = [
@@ -130,7 +102,6 @@ let vert = [
     [ 0.720000,-0.120000,-1.400000],
     [ 0.720000, 0.120000,-1.400000],
 ]
-
 let faces = [
     [21,52,12],
     [6,13,8],
@@ -249,6 +220,7 @@ for (let index = 0; index < faces.length; index++){
 }
 
 
+
 function draw() {
     ctx.fillStyle = "lightblue";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -326,8 +298,30 @@ function draw() {
         };
 
         let normalV = [-cosX * sinY, sinX, cosY * cosX];
-        let d = -(normalV[0] * tx + normalV[1] * ty + normalV[2] * tz);
 
+        const U = {
+            x: B.x - A.x,
+            y: B.y - A.y,
+            z: B.z - A.z
+        };
+        const V = {
+            x: C.x - A.x,
+            y: C.y - A.y,
+            z: C.z - A.z
+        };
+        const Nx = (U.y * V.z) - (U.z * V.y);
+        const Ny = (U.z * V.x) - (U.x * V.z);
+        const Nz = (U.x * V.y) - (U.y * V.x);
+        const magnitude = (Nx**2 + Ny**2 + Nz**2)**0.5;
+        const triangleNormal = [Nx/magnitude, Ny/magnitude, Nz/magnitude];
+        
+        let result = 0;
+        for (let i = 0; i < 3; i++) {
+            result += triangleNormal[i] * normalV[i];
+        } 
+
+        if (result <= 0.5 ){
+        let d = -(normalV[0] * tx + normalV[1] * ty + normalV[2] * tz);
         let nearPlane = [
             normalV[0] - 0.0001,
             normalV[1] - 0.0001,
@@ -379,7 +373,7 @@ function draw() {
                 depthClippedPoints.push([intersectionAB.x, intersectionAB.y, intersectionAB.z, 1]);
                 depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
             }
-        }            
+        }  
 
         // Matrix multiplications
         for (let j = 0; j < depthClippedPoints.length; j++) {
@@ -437,6 +431,7 @@ function draw() {
                 ctx.closePath();
                 ctx.stroke();
             }
+        }
         }
     }
     
@@ -578,3 +573,35 @@ document.addEventListener('mousemove', function (e) {
     }
     angleY += e.movementX / 100;
 });
+
+
+
+
+// Light ray
+        /*    
+            const sunVector = [0,-1,0]; 
+            
+            if(depthClippedPoints.length >= 3){
+                // Light ray
+                const U = {
+                    x: depthClippedPoints[1][0] - depthClippedPoints[0][0],
+                    y: depthClippedPoints[1][1] - depthClippedPoints[0][1],
+                    z: depthClippedPoints[1][2] - depthClippedPoints[0][2]
+                };
+                const V = {
+                    x: depthClippedPoints[2][0] - depthClippedPoints[0][0],
+                    y: depthClippedPoints[2][1] - depthClippedPoints[0][1],
+                    z: depthClippedPoints[2][2] - depthClippedPoints[0][2]
+                };
+                const Nx = (U.y * V.z) - (U.z * V.y);
+                const Ny = (U.z * V.x) - (U.x * V.z);
+                const Nz = (U.x * V.y) - (U.y * V.x);
+                const magnitude = (Nx**2 + Ny**2 + Nz**2)**0.5;
+                const N = [Nx/magnitude, Ny/magnitude, Nz/magnitude];
+                let result = 0;
+                for (let i = 0; i < 3; i++) {
+                    result += N[i] * sunVector[i];
+                } 
+                const R = 255/Math.abs(result-1);
+                lightShade = `rgb(${R},${R},${R})`;
+            }*/
