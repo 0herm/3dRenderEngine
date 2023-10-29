@@ -312,129 +312,126 @@ function draw() {
             y: C.y - A.y,
             z: C.z - A.z
         };
-        const Nx = (U.y * V.z) - (U.z * V.y);
-        const Ny = (U.z * V.x) - (U.x * V.z);
-        const Nz = (U.x * V.y) - (U.y * V.x);
-        const magnitude = (Nx**2 + Ny**2 + Nz**2)**0.5;
-        const triangleNormal = [Nx/magnitude, Ny/magnitude, Nz/magnitude];
+        let Nx = (U.y * V.z) - (U.z * V.y);
+        let Ny = (U.z * V.x) - (U.x * V.z);
+        let Nz = (U.x * V.y) - (U.y * V.x);
+        const length = (Nx**2 + Ny**2 + Nz**2)**0.5;
+        Nx /= length; 
+        Ny /= length;
+        Nz /= length;
         
-        let result = 0;
-        for (let i = 0; i < 3; i++) {
-            result += triangleNormal[i] * normalV[i];
-        } 
-
-        if (result <= 0.5 ){
-        let d = -(normalV[0] * tx + normalV[1] * ty + normalV[2] * tz);
-        let nearPlane = [
-            normalV[0] - 0.0001,
-            normalV[1] - 0.0001,
-            normalV[2] - 0.0001,
-            d
-        ];  
-        
-        let distanceA =  (normalV[0]*A.x + normalV[1]*A.y + normalV[2]*A.z + d) / 
-                        ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
-
-        let distanceB =  (normalV[0]*B.x + normalV[1]*B.y + normalV[2]*B.z + d) / 
-                        ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
-
-        let distanceC =  (normalV[0]*C.x + normalV[1]*C.y + normalV[2]*C.z + d) / 
-                        ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
-
-        let infront = [];
-        let behind = [];
-        if(distanceA > 0){infront.push(A);}else{behind.push(A);}
-        if(distanceB > 0){infront.push(B);}else{behind.push(B);}
-        if(distanceC > 0){infront.push(C);}else{behind.push(C);}
-
-        if (infront.length == 3){
-            depthClippedPoints.push([A.x, A.y, A.z, A.w]);
-            depthClippedPoints.push([B.x, B.y, B.z, B.w]);
-            depthClippedPoints.push([C.x, C.y, C.z, C.w]);
-        }
-        else if(infront.length == 2){
-            let intersectionAC = linePlaneIntersection(infront[0], behind[0], nearPlane);
-            let intersectionBC = linePlaneIntersection(infront[1], behind[0], nearPlane);
-
-            if (intersectionAC != null && intersectionBC != null) {
-                depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
-                depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
-                depthClippedPoints.push([infront[1].x, infront[1].y, infront[1].z, 1]);
-
-                depthClippedPoints.push([infront[1].x, infront[1].y, infront[1].z, 1]);
-                depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
-                depthClippedPoints.push([intersectionBC.x, intersectionBC.y, intersectionBC.z, 1]);
-
-            }
-        }
-        else if(infront.length == 1){
-            let intersectionAB = linePlaneIntersection(infront[0], behind[0], nearPlane);
-            let intersectionAC = linePlaneIntersection(infront[0], behind[1], nearPlane);
-
-            if (intersectionAB != null && intersectionAC != null) {
-                depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
-                depthClippedPoints.push([intersectionAB.x, intersectionAB.y, intersectionAB.z, 1]);
-                depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
-            }
-        }  
-
-        // Matrix multiplications
-        for (let j = 0; j < depthClippedPoints.length; j++) {
-            let translation = matrixMultipliation(translationMatrix, depthClippedPoints[j]);
-            let rotate = matrixMultipliation(rotateMatrix, translation);
-            let projection = matrixMultipliation(projectionMatrix, rotate);
-        
-            if (projection[3] < 0) {
-    
-                let x = projection[0] / projection[3];
-                let y = projection[1] / projection[3];
-                let z = projection[2] / projection[3];
-                
-                normalizedPoints.push([x,y,z]);
-            }
-        }
-
-        // Clipping X, Y
-        for (let l = 0; l < normalizedPoints.length; l++){
-
-            let x = normalizedPoints[l][0];
-            let y = normalizedPoints[l][1];
-
-            projectionPoints.push([ ((x + 1) * canvas.width / 2) , ((y + 1) * canvas.height / 2) ]);
-
-        }
-
-        // Draw
-        if( projectionPoints.length >= 3){
-            ctx.fillStyle = objects[i].color;
-
-            // Wireframe
-            if(keysPressed.has("KeyF") == false){
-                ctx.strokeStyle = objects[i].color;
-            }else{
-                ctx.strokeStyle = "black";
-            }
+        if (Nx * (A.x - tx) + Ny * (A.y - ty) + Nz * (A.z - tz) < 0){
+            let d = -(normalV[0] * tx + normalV[1] * ty + normalV[2] * tz);
+            let nearPlane = [
+                normalV[0] - 0.0001,
+                normalV[1] - 0.0001,
+                normalV[2] - 0.0001,
+                d
+            ];  
             
-            // Draw triangles
-            if(projectionPoints.length >= 3){
-                ctx.beginPath();
-                ctx.moveTo(projectionPoints[0][0], projectionPoints[0][1]);
-                ctx.lineTo(projectionPoints[1][0], projectionPoints[1][1]);
-                ctx.lineTo(projectionPoints[2][0], projectionPoints[2][1]);
-                ctx.fill();
-                ctx.closePath();
-                ctx.stroke();
+            let distanceA =  (normalV[0]*A.x + normalV[1]*A.y + normalV[2]*A.z + d) / 
+                            ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
+
+            let distanceB =  (normalV[0]*B.x + normalV[1]*B.y + normalV[2]*B.z + d) / 
+                            ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
+
+            let distanceC =  (normalV[0]*C.x + normalV[1]*C.y + normalV[2]*C.z + d) / 
+                            ((normalV[0]**2 + normalV[1]**2 + normalV[2]**2)**0.5);
+
+            let infront = [];
+            let behind = [];
+            if(distanceA > 0){infront.push(A);}else{behind.push(A);}
+            if(distanceB > 0){infront.push(B);}else{behind.push(B);}
+            if(distanceC > 0){infront.push(C);}else{behind.push(C);}
+
+            if (infront.length == 3){
+                depthClippedPoints.push([A.x, A.y, A.z, A.w]);
+                depthClippedPoints.push([B.x, B.y, B.z, B.w]);
+                depthClippedPoints.push([C.x, C.y, C.z, C.w]);
             }
-            if(projectionPoints.length == 6){
-                ctx.beginPath();
-                ctx.moveTo(projectionPoints[3][0], projectionPoints[3][1]);
-                ctx.lineTo(projectionPoints[4][0], projectionPoints[4][1]);
-                ctx.lineTo(projectionPoints[5][0], projectionPoints[5][1]);
-                ctx.fill();
-                ctx.closePath();
-                ctx.stroke();
+            else if(infront.length == 2){
+                let intersectionAC = linePlaneIntersection(infront[0], behind[0], nearPlane);
+                let intersectionBC = linePlaneIntersection(infront[1], behind[0], nearPlane);
+
+                if (intersectionAC != null && intersectionBC != null) {
+                    depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
+                    depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
+                    depthClippedPoints.push([infront[1].x, infront[1].y, infront[1].z, 1]);
+
+                    depthClippedPoints.push([infront[1].x, infront[1].y, infront[1].z, 1]);
+                    depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
+                    depthClippedPoints.push([intersectionBC.x, intersectionBC.y, intersectionBC.z, 1]);
+
+                }
             }
-        }
+            else if(infront.length == 1){
+                let intersectionAB = linePlaneIntersection(infront[0], behind[0], nearPlane);
+                let intersectionAC = linePlaneIntersection(infront[0], behind[1], nearPlane);
+
+                if (intersectionAB != null && intersectionAC != null) {
+                    depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
+                    depthClippedPoints.push([intersectionAB.x, intersectionAB.y, intersectionAB.z, 1]);
+                    depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
+                }
+            }  
+
+            // Matrix multiplications
+            for (let j = 0; j < depthClippedPoints.length; j++) {
+                let translation = matrixMultipliation(translationMatrix, depthClippedPoints[j]);
+                let rotate = matrixMultipliation(rotateMatrix, translation);
+                let projection = matrixMultipliation(projectionMatrix, rotate);
+            
+                if (projection[3] < 0) {
+        
+                    let x = projection[0] / projection[3];
+                    let y = projection[1] / projection[3];
+                    let z = projection[2] / projection[3];
+                    
+                    normalizedPoints.push([x,y,z]);
+                }
+            }
+
+            // Clipping X, Y
+            for (let l = 0; l < normalizedPoints.length; l++){
+
+                let x = normalizedPoints[l][0];
+                let y = normalizedPoints[l][1];
+
+                projectionPoints.push([ ((x + 1) * canvas.width / 2) , ((y + 1) * canvas.height / 2) ]);
+
+            }
+
+            // Draw
+            if( projectionPoints.length >= 3){
+                ctx.fillStyle = objects[i].color;
+
+                // Wireframe
+                if(keysPressed.has("KeyF") == false){
+                    ctx.strokeStyle = objects[i].color;
+                }else{
+                    ctx.strokeStyle = "black";
+                }
+                
+                // Draw triangles
+                if(projectionPoints.length >= 3){
+                    ctx.beginPath();
+                    ctx.moveTo(projectionPoints[0][0], projectionPoints[0][1]);
+                    ctx.lineTo(projectionPoints[1][0], projectionPoints[1][1]);
+                    ctx.lineTo(projectionPoints[2][0], projectionPoints[2][1]);
+                    ctx.fill();
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+                if(projectionPoints.length == 6){
+                    ctx.beginPath();
+                    ctx.moveTo(projectionPoints[3][0], projectionPoints[3][1]);
+                    ctx.lineTo(projectionPoints[4][0], projectionPoints[4][1]);
+                    ctx.lineTo(projectionPoints[5][0], projectionPoints[5][1]);
+                    ctx.fill();
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+            }
         }
     }
     
