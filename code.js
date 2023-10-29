@@ -37,7 +37,7 @@ class Triangle {
     }
 }
 
-  
+
 // Objects
 let objects = [];
 
@@ -219,7 +219,10 @@ for (let index = 0; index < faces.length; index++){
     objects.push(new Triangle(point1[0]+ 25,point1[1]+ 25,point1[2]+ 25,point2[0]+ 25,point2[1]+ 25,point2[2]+ 25,point3[0]+ 25,point3[1]+ 25,point3[2]+ 25));
 }
 
-
+// Terrain 
+loadFile("terrain.txt", function (fileContent) {
+    console.log(fileContent);
+});
 
 function draw() {
     ctx.fillStyle = "lightblue";
@@ -573,7 +576,17 @@ document.onpointermove = function (e) {
     angleY += e.movementX / 100;
 };
 
-
+// Load file
+function loadFile(fileURL, callback) {
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        callback(xhr.responseText);
+      }
+    };
+    xhr.open("GET", fileURL, true);
+    xhr.send();
+}
 
 
 // Light ray
