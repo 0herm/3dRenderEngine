@@ -27,7 +27,11 @@ let keysToggle = new Set();
 
 // Triangle object
 class Triangle {
-    constructor(x1, y1, z1, x2, y2, z2, x3, y3, z3, color = "lightgray") {
+
+    points;
+    color;
+
+    constructor(x1, y1, z1, x2, y2, z2, x3, y3, z3, color = [130,130,130]) {
         this.points = [
             [x1, y1, z1, 1],
             [x2, y2, z2, 1],
@@ -41,8 +45,8 @@ class Triangle {
 // Objects
 let objects = [];
 
-objects.push(new Triangle(0,0,0,0,0,100,100,0,0,"gray"));
-objects.push(new Triangle(0,0,100,100,0,100,100,0,0,"gray"));
+objects.push(new Triangle(0,0,0,0,0,100,100,0,0,[100,100,100]));
+objects.push(new Triangle(0,0,100,100,0,100,100,0,0,[100,100,100]));
 
 // Space ship
 let vert = [
@@ -366,7 +370,7 @@ function draw() {
             else if(infront.length == 1){
                 let intersectionAB = linePlaneIntersection(infront[0], behind[0], nearPlane);
                 let intersectionAC = linePlaneIntersection(infront[0], behind[1], nearPlane);
-
+                
                 if (intersectionAB != null && intersectionAC != null) {
                     depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
                     depthClippedPoints.push([intersectionAB.x, intersectionAB.y, intersectionAB.z, 1]);
@@ -402,13 +406,38 @@ function draw() {
 
             // Draw
             if( projectionPoints.length >= 3){
-                ctx.fillStyle = objects[i].color;
+                const rgbValue = objects[i].color;
+                let shading;
+
+                // Light ray 
+                const sunVector = [0,1,0];
+
+                const U = {
+                    x: objects[i].points[1][0] - objects[i].points[0][0],
+                    y: objects[i].points[1][1] - objects[i].points[0][1],
+                    z: objects[i].points[1][2] - objects[i].points[0][2]
+                };
+                const V = {
+                    x: objects[i].points[2][0] - objects[i].points[0][0],
+                    y: objects[i].points[2][1] - objects[i].points[0][1],
+                    z: objects[i].points[2][2] - objects[i].points[0][2]
+                };
+                const Nx = (U.y * V.z) - (U.z * V.y);
+                const Ny = (U.z * V.x) - (U.x * V.z);
+                const Nz = (U.x * V.y) - (U.y * V.x);
+                const magnitude = (Nx**2 + Ny**2 + Nz**2)**0.5;
+                const N = [Nx/magnitude, Ny/magnitude, Nz/magnitude];
+                const dotProduct = N[0] * sunVector[0] + N[1] * sunVector[1] + N[2] * sunVector[2];
+                
+                shading = (dotProduct + 1) / 2;
+
+                ctx.fillStyle = `rgb(${rgbValue[0]*shading},${rgbValue[1]*shading},${rgbValue[2]*shading})`;
 
                 // Wireframe
                 if(keysToggle.has("KeyF") == false){
-                    ctx.strokeStyle = objects[i].color;
+                    ctx.strokeStyle = `rgb(${rgbValue[0]*shading},${rgbValue[1]*shading},${rgbValue[2]*shading})`;
                 }else{
-                    ctx.strokeStyle = "black";
+                    ctx.strokeStyle = "rgb(0,0,0)";
                 }
                 
                 // Draw triangles
@@ -448,7 +477,7 @@ function draw() {
         informationTab.push("v: fly");
         
         for (let m = 0; m < informationTab.length; m++){
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "rgb(0,0,0)";
             ctx.fillText(informationTab[m], 10, (m+1)*20);
         }
         informationTab = [];
@@ -571,34 +600,3 @@ document.onpointermove = function (e) {
     }
     angleY += e.movementX / 100;
 };
-
-
-
-// Light ray
-        /*    
-            const sunVector = [0,-1,0]; 
-            
-            if(depthClippedPoints.length >= 3){
-                // Light ray
-                const U = {
-                    x: depthClippedPoints[1][0] - depthClippedPoints[0][0],
-                    y: depthClippedPoints[1][1] - depthClippedPoints[0][1],
-                    z: depthClippedPoints[1][2] - depthClippedPoints[0][2]
-                };
-                const V = {
-                    x: depthClippedPoints[2][0] - depthClippedPoints[0][0],
-                    y: depthClippedPoints[2][1] - depthClippedPoints[0][1],
-                    z: depthClippedPoints[2][2] - depthClippedPoints[0][2]
-                };
-                const Nx = (U.y * V.z) - (U.z * V.y);
-                const Ny = (U.z * V.x) - (U.x * V.z);
-                const Nz = (U.x * V.y) - (U.y * V.x);
-                const magnitude = (Nx**2 + Ny**2 + Nz**2)**0.5;
-                const N = [Nx/magnitude, Ny/magnitude, Nz/magnitude];
-                let result = 0;
-                for (let i = 0; i < 3; i++) {
-                    result += N[i] * sunVector[i];
-                } 
-                const R = 255/Math.abs(result-1);
-                lightShade = `rgb(${R},${R},${R})`;
-            }*/
