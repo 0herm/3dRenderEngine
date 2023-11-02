@@ -1,10 +1,18 @@
-let ctx = document.getElementById("canvas").getContext("2d");
+let scene = new THREE.Scene();
+let camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 1, 1000);
+let renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+camera.position.z = -10;
+
+let canvas = document.getElementsByTagName("canvas");
+/*let ctx = document.getElementById("canvas").getContext("2d");
 ctx.canvas.width = window.innerWidth;
 ctx.canvas.height = window.innerHeight;
-ctx.font = "18px Source Code Pro";
+ctx.font = "18px Source Code Pro";*/
 
 // Camera projection
-const a = canvas.height / canvas.width;
+const a = window.innerHeight / window.innerWidth;
 const FOV = 70;
 const f = 1 / Math.tan((FOV * Math.PI / 180) / 2);
 const zFar = 10;
@@ -205,7 +213,7 @@ f 31 28 32
 f 29 30 34
 f 25 24 40
 `;
-//loadObject(spaceShip);
+loadObject(spaceShip);
 
 // Utah teapot 
 const teapot = `v -3.000000 1.800000 0.000000
@@ -17482,8 +17490,9 @@ f 1385 1270 734`;
 //loadObject(terrain);
 
 function draw() {
-    ctx.fillStyle = "lightblue";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    while (scene.children.length > 0) {
+        scene.remove(scene.children[0]);
+    }
 
     let informationTab = []; 
     
@@ -17660,22 +17669,14 @@ function draw() {
                 let x = normalizedPoints[l][0];
                 let y = normalizedPoints[l][1];
                 let z = normalizedPoints[l][2];
-                
-
-
-                depthSort.push =  (
-                    {
-                        "objectId" : i,
-                        "depth"    : z
-                    }
-                );
-        
-                projectionPoints.push([ ((x + 1) * canvas.width / 2) , ((y + 1) * canvas.height / 2) ]);
+            
+                projectionPoints.push([ ((x + 1) * window.innerWidth / 2) , ((y + 1) * window.innerHeight / 2) ]);
 
             }
             
             // Draw
             if( projectionPoints.length >= 3){
+                /*
                 const rgbValue = objects[i].color;
 
                 // Light ray 
@@ -17691,17 +17692,19 @@ function draw() {
                     ctx.strokeStyle = `rgb(${rgbValue[0]*shading},${rgbValue[1]*shading},${rgbValue[2]*shading})`;
                 }else{
                     ctx.strokeStyle = "rgb(0,0,0)";
-                }
+                }*/
                 
                 // Draw triangles
                 objects[i].projectionPoints = projectionPoints;
-                objects[i].draw();
+
+                var vertex1 = { x: 0, y: 0 };
+                var vertex2 = { x: 100, y: 100 };
+                var vertex3 = { x: -20, y: -20 };
+                addTriangle(vertex1, vertex2, vertex3);
             }
             
         }
     }
-
-    const list = depthSort.sort((a,b) => a.index - b.index).map((depthSort, objectId, array) => depthSort.depth)
 
 
     // FPS
@@ -17716,6 +17719,7 @@ function draw() {
     informationTab.push("FPS: " + fps);
 
     // Information
+    /*
     if(keysToggle.has("KeyQ")){
         informationTab.push("XYZ: " + parseInt(tx) + "," + parseInt(ty) + "," + parseInt(tz));
         informationTab.push("angle X: " + parseInt((angleY / (Math.PI / 180)) % 360));
@@ -17729,12 +17733,14 @@ function draw() {
             ctx.fillText(informationTab[m], 10, (m+1)*20);
         }
         informationTab = [];
-    }
+    }*/
 
+    // Render the scene
+    renderer.render(scene, camera);
 
     // Call animation
     if(!keysPressed.has("KeyX")){
-        requestAnimationFrame(draw);
+        requestAnimationFrame(draw, 10);
     }
 }
 
@@ -17834,22 +17840,39 @@ function loadObject(object){
     }
 }
 
+// Add a triangle to the scene
+function addTriangle(vertex1, vertex2, vertex3) {
+    let geometry = new THREE.BufferGeometry();
+    let positions = new Float32Array([
+        vertex1.x, vertex1.y, 0,         
+        vertex2.x, vertex2.y, 0,          
+        vertex3.x, vertex3.y, 0
+    ]);
+    
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setIndex([0, 1, 2]);
+
+    let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    let triangle = new THREE.Mesh(geometry, material);
+    scene.add(triangle);
+}
+
 // Events
 document.onkeydown = function(e){
-    keysPressed.add(event.code);
+    keysPressed.add(e.code);
 
-    if (!keysToggle.has(event.code)) {
-        keysToggle.add(event.code);
-    } else if (keysToggle.has(event.code)) {
-        keysToggle.delete(event.code);
+    if (!keysToggle.has(e.code)) {
+        keysToggle.add(e.code);
+    } else if (keysToggle.has(e.code)) {
+        keysToggle.delete(e.code);
     }
 };
 
 document.onkeyup = function(e){
-    keysPressed.delete(event.code);
+    keysPressed.delete(e.code);
 };
 
-document.onclick = async () => {
+document.onclick = async () => { 
     await canvas.requestPointerLock();
 };
 
