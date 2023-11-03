@@ -49,4 +49,11 @@ class Triangle {
         ctx.fill();
         ctx.stroke();
     };
+
+    colorValues() {
+        let array = this.color;
+        return [array[0] / 255,
+                array[1] / 255,
+                array[2] / 255];
+    };
 };

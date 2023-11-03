@@ -1,7 +1,19 @@
-let ctx = document.getElementById("canvas").getContext("2d");
-ctx.canvas.width = window.innerWidth;
-ctx.canvas.height = window.innerHeight;
-ctx.font = "18px Source Code Pro";
+// Scene
+let scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe0ffff);
+
+// Render
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+renderer.domElement.id = "canvas";
+
+let canvas = document.getElementById("canvas");
+
+// Camera
+var camera = new THREE.OrthographicCamera(  window.innerWidth  / -2, window.innerWidth /   2,
+                                            window.innerHeight / 2 , window.innerHeight / -2, 1, 500);
+camera.position.set(0, 0, 1);
 
 // Camera projection
 const a = canvas.height / canvas.width;
@@ -12,13 +24,13 @@ const zNear = 1;
 const q = zFar / (zFar - zNear);
 
 // Camera pos 
-let tx = 7;
-let ty = 5;
-let tz = 6;
+let tx = 0;
+let ty = 0;
+let tz = -5;
 
 // Camera angle
-let angleX = -26 * Math.PI / 180;
-let angleY = 143 * Math.PI / 180;
+let angleX = 0 * Math.PI / 180;
+let angleY = 0 * Math.PI / 180;
 
 // Button Pressed
 let keysPressed = new Set();
@@ -35,9 +47,8 @@ const sunVector = [0,1,0];
 
 // Objects
 let objects = [];
-
 objects.push(new Triangle(0,0,0,0,0,100,100,0,0));
-objects.push(new Triangle(0,0,100,100,0,100,100,0,0));
+// objects.push(new Triangle(0,0,100,100,0,100,100,0,0));
 
 // Space ship
 const spaceShip = `# Blender v2.79 (sub 0) OBJ File: ''
@@ -17482,10 +17493,14 @@ f 1385 1270 734`;
 //loadObject(terrain);
 
 function draw() {
-    ctx.fillStyle = "lightblue";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Clear screen
+    while(scene.children.length > 0){ 
+        scene.remove(scene.children[0]); 
+    }
 
     let informationTab = []; 
+    let drawPoints = [];
+    let drawColors = [];
     
     let cosX = Math.cos(angleX);
     let cosY = Math.cos(angleY);
@@ -17539,7 +17554,6 @@ function draw() {
         let depthClippedPoints = [];
         let normalizedPoints = [];
         let projectionPoints = [];
-        let depthSort = [];
         
         // Depth Clipping Z
         let A = { 
@@ -17633,8 +17647,8 @@ function draw() {
                 
                 if (intersectionAB != null && intersectionAC != null) {
                     depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
-                    depthClippedPoints.push([intersectionAB.x, intersectionAB.y, intersectionAB.z, 1]);
                     depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
+                    depthClippedPoints.push([intersectionAB.x, intersectionAB.y, intersectionAB.z, 1]);
                 }
             }  
 
@@ -17660,49 +17674,65 @@ function draw() {
                 let x = normalizedPoints[l][0];
                 let y = normalizedPoints[l][1];
                 let z = normalizedPoints[l][2];
-                
-
-
-                depthSort.push =  (
-                    {
-                        "objectId" : i,
-                        "depth"    : z
-                    }
-                );
         
-                projectionPoints.push([ ((x + 1) * canvas.width / 2) , ((y + 1) * canvas.height / 2) ]);
-
+                projectionPoints.push([ (x * canvas.width / 2) , (y * canvas.height / 2), z ]);
             }
             
             // Draw
-            if( projectionPoints.length >= 3){
-                const rgbValue = objects[i].color;
+            if(projectionPoints.length >= 3){
+                const rgbValue = objects[i].colorValues();
 
                 // Light ray 
                 const normalVector = objects[i].normalVector();
 
                 const dotProduct = normalVector[0] * sunVector[0] + normalVector[1] * sunVector[1] + normalVector[2] * sunVector[2];
-                const shading = ((dotProduct + 1) / 2) + 0.1;
+                const shading = ((dotProduct + 1) / 2);
 
-                ctx.fillStyle = `rgb(${rgbValue[0]*shading},${rgbValue[1]*shading},${rgbValue[2]*shading})`;
-
-                // Wireframe
-                if(keysToggle.has("KeyF") == false){
-                    ctx.strokeStyle = `rgb(${rgbValue[0]*shading},${rgbValue[1]*shading},${rgbValue[2]*shading})`;
-                }else{
-                    ctx.strokeStyle = "rgb(0,0,0)";
+                let faceColor = [rgbValue[0] * shading,
+                                 rgbValue[1] * shading,
+                                 rgbValue[2] * shading];
+                
+               
+                if(projectionPoints.length >= 3){
+                    drawPoints.push(projectionPoints[0][0], projectionPoints[0][1] * -1, 0,
+                                    projectionPoints[1][0], projectionPoints[1][1] * -1, 0,
+                                    projectionPoints[2][0], projectionPoints[2][1] * -1, 0      
+                                    );
+                    drawColors.push(faceColor[0], faceColor[1], faceColor[2],
+                                    faceColor[0], faceColor[1], faceColor[2],
+                                    faceColor[0], faceColor[1], faceColor[2]    
+                                    );
+                }
+                if(projectionPoints.length == 6){
+                    drawPoints.push(projectionPoints[3][0], projectionPoints[3][1] * -1, 0,
+                                    projectionPoints[4][0], projectionPoints[4][1] * -1, 0,
+                                    projectionPoints[5][0], projectionPoints[5][1] * -1, 0
+                                    );
+                    drawColors.push(faceColor[0], faceColor[1], faceColor[2],
+                                    faceColor[0], faceColor[1], faceColor[2],
+                                    faceColor[0], faceColor[1], faceColor[2]    
+                                    );
                 }
                 
-                // Draw triangles
-                objects[i].projectionPoints = projectionPoints;
-                objects[i].draw();
             }
             
         }
     }
 
-    const list = depthSort.sort((a,b) => a.index - b.index).map((depthSort, objectId, array) => depthSort.depth)
+    // Render scene
+    let geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(drawPoints, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(drawColors, 3));
 
+    const material = new THREE.MeshBasicMaterial({ vertexColors: true });
+    // Wireframe
+    if(keysToggle.has("KeyF")){
+        material.wireframe = true;
+    }    
+    
+    let triangle = new THREE.Mesh(geometry, material);
+    scene.add(triangle);
+    renderer.render(scene, camera);
 
     // FPS
     d = new Date();
@@ -17725,8 +17755,6 @@ function draw() {
         informationTab.push("Keys: " + Array.from(keysPressed).join(' '));
         
         for (let m = 0; m < informationTab.length; m++){
-            ctx.fillStyle = "rgb(0,0,0)";
-            ctx.fillText(informationTab[m], 10, (m+1)*20);
         }
         informationTab = [];
     }
@@ -17808,14 +17836,6 @@ function matrixMultipliation(projection, vertex) {
     return result;
 }
 
-// Draw line
-function line(p1, p2) {
-    ctx.beginPath();
-    ctx.moveTo(p1[0], p1[1]);
-    ctx.lineTo(p2[0], p2[1]);
-    ctx.stroke();
-}
-
 // Load object
 function loadObject(object){
     let vertices = [];
@@ -17836,21 +17856,17 @@ function loadObject(object){
 
 // Events
 document.onkeydown = function(e){
-    keysPressed.add(event.code);
+    keysPressed.add(e.code);
 
-    if (!keysToggle.has(event.code)) {
-        keysToggle.add(event.code);
-    } else if (keysToggle.has(event.code)) {
-        keysToggle.delete(event.code);
+    if (!keysToggle.has(e.code)) {
+        keysToggle.add(e.code);
+    } else if (keysToggle.has(e.code)) {
+        keysToggle.delete(e.code);
     }
 };
 
 document.onkeyup = function(e){
-    keysPressed.delete(event.code);
-};
-
-document.onclick = async () => {
-    await canvas.requestPointerLock();
+    keysPressed.delete(e.code);
 };
 
 document.onpointermove = function (e) {
@@ -17866,3 +17882,7 @@ document.onpointermove = function (e) {
     }
     angleY += e.movementX / 100;
 };
+
+canvas.addEventListener("click", async () => {
+    canvas.requestPointerLock();
+});
