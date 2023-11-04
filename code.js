@@ -13,7 +13,7 @@ let canvas = document.getElementById("canvas");
 // Camera
 var camera = new THREE.OrthographicCamera(  window.innerWidth  / -2, window.innerWidth /   2,
                                             window.innerHeight / 2 , window.innerHeight / -2, 1, 500);
-camera.position.set(0, 0, 1);
+camera.position.set(0, 0, 100);
 
 // Camera projection
 const a = canvas.height / canvas.width;
@@ -47,8 +47,32 @@ const sunVector = [0,1,0];
 
 // Objects
 let objects = [];
-objects.push(new Triangle(0,0,0,0,0,100,100,0,0));
-// objects.push(new Triangle(0,0,100,100,0,100,100,0,0));
+// objects.push(new Triangle(0,0,0,0,0,100,100,0,0));
+//  objects.push(new Triangle(0,0,100,100,0,100,100,0,0));
+objects.push(new Triangle(-200,0,-200,200,0,200,200,0,-200));
+
+// Cube 
+const cube = `v -0.5 -0.5 0.5
+v 0.5 -0.5 0.5
+v 0.5 0.5 0.5
+v -0.5 0.5 0.5
+v -0.5 -0.5 -0.5
+v 0.5 -0.5 -0.5
+v 0.5 0.5 -0.5
+v -0.5 0.5 -0.5
+f 1 2 3
+f 3 4 1
+f 2 6 7
+f 7 3 2
+f 6 5 8
+f 8 7 6
+f 5 1 4
+f 4 8 5
+f 4 3 7
+f 7 8 4
+f 5 6 2
+f 2 1 5`; 
+loadObject(cube);
 
 // Space ship
 const spaceShip = `# Blender v2.79 (sub 0) OBJ File: ''
@@ -17490,7 +17514,7 @@ f 1844 2180 2319
 f 1394 1279 2092
 f 1202 734 2293
 f 1385 1270 734`;
-//loadObject(terrain);
+// loadObject(terrain);
 
 function draw() {
     // Clear screen
@@ -17667,7 +17691,7 @@ function draw() {
                     normalizedPoints.push([x,y,z]);
                 }
             }
-            
+
             // Clipping X, Y
             for (let l = 0; l < normalizedPoints.length; l++){
 
@@ -17677,7 +17701,7 @@ function draw() {
         
                 projectionPoints.push([ (x * canvas.width / 2) , (y * canvas.height / 2), z ]);
             }
-            
+
             // Draw
             if(projectionPoints.length >= 3){
                 const rgbValue = objects[i].colorValues();
@@ -17692,21 +17716,18 @@ function draw() {
                                  rgbValue[1] * shading,
                                  rgbValue[2] * shading];
                 
-               
-                if(projectionPoints.length >= 3){
-                    drawPoints.push(projectionPoints[0][0], projectionPoints[0][1] * -1, 0,
-                                    projectionPoints[1][0], projectionPoints[1][1] * -1, 0,
-                                    projectionPoints[2][0], projectionPoints[2][1] * -1, 0      
-                                    );
-                    drawColors.push(faceColor[0], faceColor[1], faceColor[2],
-                                    faceColor[0], faceColor[1], faceColor[2],
-                                    faceColor[0], faceColor[1], faceColor[2]    
-                                    );
-                }
+                drawPoints.push(projectionPoints[0][0], -projectionPoints[0][1], -projectionPoints[0][2],
+                                projectionPoints[1][0], -projectionPoints[1][1], -projectionPoints[1][2],
+                                projectionPoints[2][0], -projectionPoints[2][1], -projectionPoints[2][2]      
+                                );
+                drawColors.push(faceColor[0], faceColor[1], faceColor[2],
+                                faceColor[0], faceColor[1], faceColor[2],
+                                faceColor[0], faceColor[1], faceColor[2]    
+                                );
                 if(projectionPoints.length == 6){
-                    drawPoints.push(projectionPoints[3][0], projectionPoints[3][1] * -1, 0,
-                                    projectionPoints[4][0], projectionPoints[4][1] * -1, 0,
-                                    projectionPoints[5][0], projectionPoints[5][1] * -1, 0
+                    drawPoints.push(projectionPoints[3][0], -projectionPoints[3][1], -projectionPoints[0][2],
+                                    projectionPoints[4][0], -projectionPoints[4][1], -projectionPoints[1][2],
+                                    projectionPoints[5][0], -projectionPoints[5][1], -projectionPoints[2][2]
                                     );
                     drawColors.push(faceColor[0], faceColor[1], faceColor[2],
                                     faceColor[0], faceColor[1], faceColor[2],
