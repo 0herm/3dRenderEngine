@@ -10185,7 +10185,7 @@ f 2968 2970 3004
 f 3022 3021 3001
 f 3001 3004 3022
 `;
-loadObject(teapot);
+//loadObject(teapot);
 
 // Terrain
 const terrain = `# Blender v2.79 (sub 0) OBJ File: ''
@@ -17647,8 +17647,8 @@ function draw() {
                 
                 if (intersectionAB != null && intersectionAC != null) {
                     depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
-                    depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
                     depthClippedPoints.push([intersectionAB.x, intersectionAB.y, intersectionAB.z, 1]);
+                    depthClippedPoints.push([intersectionAC.x, intersectionAC.y, intersectionAC.z, 1]);
                 }
             }  
 
@@ -17724,7 +17724,7 @@ function draw() {
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(drawPoints, 3));
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(drawColors, 3));
 
-    const material = new THREE.MeshBasicMaterial({ vertexColors: true });
+    const material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
     // Wireframe
     if(keysToggle.has("KeyF")){
         material.wireframe = true;
