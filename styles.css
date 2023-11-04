@@ -1,7 +1,13 @@
+@font-face {
+    font-family: "Code Pro";
+    src: url('SourceCodePro-Medium.ttf') format('truetype');
+  }
+
 * {
     margin: 0;
     border: 0;
     padding: 0;
+    font-family: "Code Pro";
 }
 
 html, body {
