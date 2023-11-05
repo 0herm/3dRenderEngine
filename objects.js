@@ -1,9 +1,9 @@
 class Entity {
 
     triangleObjects;
-    offset;
-    scale;
-    color = [130,130,130];
+    offset = [0,0,0];
+    scale  = 1;
+    color =  [130,130,130];
 
     constructor(objects) {
         this.triangleObjects = objects;

@@ -54,11 +54,16 @@ const sunVector = [0,1,0];
 
 // Objects
 let objects = [];
-// objects.push(new Triangle(0,0,0,0,0,100,100,0,0));
-// objects.push(new Triangle(0,0,100,100,0,100,100,0,0));
 
 // Axis
-// loadObject(axis);
+objects.push(new Entity([new Triangle(0,0,0,10,0,2,10,0,0),new Triangle(0,0,0,2,0,2,10,0,2)]));
+objects[objects.length - 1].color = [255,0,0];
+objects.push(new Entity([new Triangle(0,0,0,0,0,10,2,0,10),new Triangle(0,0,0,2,0,10,2,0,2)]));
+objects[objects.length - 1].color = [0,0,255];
+objects.push(new Entity([new Triangle(0,0,0,0,10,0,2,10,2),new Triangle(0,0,0,2,10,2,2,0,2)]));
+objects[objects.length - 1].color = [0,255,0];
+objects.push(new Entity([new Triangle(0,0,0,2,10,2,0,10,0),new Triangle(0,0,0,2,0,2,2,10,2)]));
+objects[objects.length - 1].color = [0,255,0];
 
 // Cube 
 // loadObject(cube);
@@ -71,7 +76,7 @@ let objects = [];
 
 // Terrain
 loadObject(terrain);
-
+objects[objects.length - 1].offset = [80,0,80];
 
 function draw() {
     // Clear screen
@@ -135,6 +140,7 @@ function draw() {
         for ( let j = 0; j < objects[i].triangleObjects.length; j++ ){
             
             const currentTriangle = objects[i].triangleObjects[j];
+            const offset = objects[i].offset;
             
             currentTriangle.projectionPoints = [];
             let depthClippedPoints = [];
@@ -143,23 +149,23 @@ function draw() {
             
             // Depth Clipping Z
             let A = { 
-                x: currentTriangle.points[0][0],
-                y: currentTriangle.points[0][1],
-                z: currentTriangle.points[0][2],
+                x: currentTriangle.points[0][0] + offset[0],
+                y: currentTriangle.points[0][1] + offset[1],
+                z: currentTriangle.points[0][2] + offset[2],
                 w: currentTriangle.points[0][3] 
             };
 
             let B = { 
-                x: currentTriangle.points[1][0],
-                y: currentTriangle.points[1][1],
-                z: currentTriangle.points[1][2],
+                x: currentTriangle.points[1][0] + offset[0],
+                y: currentTriangle.points[1][1] + offset[1],
+                z: currentTriangle.points[1][2] + offset[2],
                 w: currentTriangle.points[1][3] 
             };
 
             let C = { 
-                x: currentTriangle.points[2][0],
-                y: currentTriangle.points[2][1],
-                z: currentTriangle.points[2][2],
+                x: currentTriangle.points[2][0] + offset[0],
+                y: currentTriangle.points[2][1] + offset[1],
+                z: currentTriangle.points[2][2] + offset[2],
                 w: currentTriangle.points[2][3] 
             };
 
@@ -301,54 +307,54 @@ function draw() {
                 
             }
         }
+    }
 
-        // Render scene
-        let geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(drawPoints, 3));
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(drawColors, 3));
+    // Render scene
+    let geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(drawPoints, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(drawColors, 3));
 
-        const material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
-        // Wireframe
-        if(keysToggle.has("KeyF")){
-            material.wireframe = true;
-        }    
+    const material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    // Wireframe
+    if(keysToggle.has("KeyF")){
+        material.wireframe = true;
+    }    
         
-        let triangle = new THREE.Mesh(geometry, material);
-        scene.add(triangle);
-        renderer.render(scene, camera);
+    let triangle = new THREE.Mesh(geometry, material);
+    scene.add(triangle);
+    renderer.render(scene, camera);
 
-        // FPS
-        d = new Date();
-        const currentTime = d.getTime()/1000;
-        frames++;
-        if(currentTime - lastTime > 1){
-            lastTime = currentTime;
-            fps = frames/1;
-            frames = 0;
+    // FPS
+    d = new Date();
+    const currentTime = d.getTime()/1000;
+    frames++;
+    if(currentTime - lastTime > 1){
+        lastTime = currentTime;
+        fps = frames/1;
+        frames = 0;
+    }
+    informationTab.push("FPS: " + fps);
+
+    // Information
+    if(keysToggle.has("KeyQ")){
+        informationTab.push("Objects: " + objects.length);
+        informationTab.push("XYZ: " + parseInt(tx) + "," + parseInt(ty) + "," + parseInt(tz));
+        informationTab.push("angle X: " + parseInt((angleY / (Math.PI / 180)) % 360));
+        informationTab.push("angle Y: " + parseInt(angleX / (Math.PI / 180)));
+        informationTab.push("zFar zNear: " + zFar + "," + zNear);
+        informationTab.push("FOV: " + FOV);
+        informationTab.push("Keys: " + Array.from(keysPressed).join(' '));
+
+        for (let m = 0; m < informationTab.length; m++){
+            informationPre.innerHTML += informationTab[m] + "\n";
         }
-        informationTab.push("FPS: " + fps);
-
-        // Information
-        if(keysToggle.has("KeyQ")){
-            informationTab.push("Objects: " + objects.length);
-            informationTab.push("XYZ: " + parseInt(tx) + "," + parseInt(ty) + "," + parseInt(tz));
-            informationTab.push("angle X: " + parseInt((angleY / (Math.PI / 180)) % 360));
-            informationTab.push("angle Y: " + parseInt(angleX / (Math.PI / 180)));
-            informationTab.push("zFar zNear: " + zFar + "," + zNear);
-            informationTab.push("FOV: " + FOV);
-            informationTab.push("Keys: " + Array.from(keysPressed).join(' '));
-
-            for (let m = 0; m < informationTab.length; m++){
-                informationPre.innerHTML += informationTab[m] + "\n";
-            }
-            informationTab = [];
-        }
+        informationTab = [];
+    }
 
 
-        // Call animation
-        if(!keysPressed.has("KeyX")){
-            requestAnimationFrame(draw);
-        }
+    // Call animation
+    if(!keysPressed.has("KeyX")){
+        requestAnimationFrame(draw);
     }
 }
 
