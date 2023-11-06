@@ -141,6 +141,7 @@ function draw() {
             
             const currentTriangle = objects[i].triangleObjects[j];
             const offset = objects[i].offset;
+            const scale = objects[i].scale;
             
             currentTriangle.projectionPoints = [];
             let depthClippedPoints = [];
@@ -149,23 +150,23 @@ function draw() {
             
             // Depth Clipping Z
             let A = { 
-                x: currentTriangle.points[0][0] + offset[0],
-                y: currentTriangle.points[0][1] + offset[1],
-                z: currentTriangle.points[0][2] + offset[2],
+                x: (currentTriangle.points[0][0] + offset[0]) * scale,
+                y: (currentTriangle.points[0][1] + offset[1]) * scale,
+                z: (currentTriangle.points[0][2] + offset[2]) * scale,
                 w: currentTriangle.points[0][3] 
             };
 
             let B = { 
-                x: currentTriangle.points[1][0] + offset[0],
-                y: currentTriangle.points[1][1] + offset[1],
-                z: currentTriangle.points[1][2] + offset[2],
+                x: (currentTriangle.points[1][0] + offset[0]) * scale,
+                y: (currentTriangle.points[1][1] + offset[1]) * scale,
+                z: (currentTriangle.points[1][2] + offset[2]) * scale,
                 w: currentTriangle.points[1][3] 
             };
 
             let C = { 
-                x: currentTriangle.points[2][0] + offset[0],
-                y: currentTriangle.points[2][1] + offset[1],
-                z: currentTriangle.points[2][2] + offset[2],
+                x: (currentTriangle.points[2][0] + offset[0]) * scale,
+                y: (currentTriangle.points[2][1] + offset[1]) * scale,
+                z: (currentTriangle.points[2][2] + offset[2]) * scale,
                 w: currentTriangle.points[2][3] 
             };
 
