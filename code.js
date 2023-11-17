@@ -1,3 +1,9 @@
+// Screen 
+const width = canvas.width;
+const height = canvas.height; 
+
+
+
 // Scene
 let scene = new THREE.Scene();
 scene.background = new THREE.Color(0xe0ffff);
@@ -30,15 +36,21 @@ let tz = -5;
 let angleX = 0 * Math.PI / 180;
 let angleY = 0 * Math.PI / 180;
 
+
+
 // Button Pressed
 let keysPressed = new Set();
 let keysToggle = new Set();
+
+
 
 // FPS
 let d = new Date();
 let lastTime = d.getTime()/1000;
 let frames = 0;
 let fps;
+
+
 
 // Information
 let informationPre = document.createElement('pre');
@@ -49,8 +61,12 @@ informationPre.style.top = 10 + 'px';
 informationPre.style.left = 10 + 'px';
 document.body.appendChild(informationPre);
 
+
+
 // Light 
 const sunVector = [0,1,0];
+
+
 
 // Objects
 let objects = [];
@@ -72,26 +88,26 @@ objects[objects.length - 1].color = [0,255,0];
 // loadObject(spaceShip);
 
 // Utah teapot 
-// loadObject(teapot);
+loadObject(teapot);
 
 // Terrain
 loadObject(terrain);
 objects[objects.length - 1].offset = [80,0,80];
 
+
+
 function draw() {
-    // Clear screen
+    // Remove objects (clear screen)
     while(scene.children.length > 0){ 
         scene.remove(scene.children[0]); 
     }
-
-    const width = canvas.width;
-    const height = canvas.height; 
 
     let informationTab = []; 
     informationPre.innerHTML = "";
     let drawPoints = [];
     let drawColors = [];
     
+    // Angles
     let cosX = Math.cos(angleX);
     let cosY = Math.cos(angleY);
     let sinX = Math.sin(angleX);
@@ -149,7 +165,6 @@ function draw() {
             currentTriangle.projectionPoints = [];
             let depthClippedPoints = [];
             let normalizedPoints = [];
-            let projectionPoints = [];
             
             // Depth Clipping Z
             let A = { 
@@ -223,8 +238,8 @@ function draw() {
                     depthClippedPoints.push([C.x, C.y, C.z, C.w]);
                 }
                 else if(infront.length == 2){
-                    let intersectionAC = linePlaneIntersection(infront[0], behind[0], nearPlane);
-                    let intersectionBC = linePlaneIntersection(infront[1], behind[0], nearPlane);
+                    let intersectionAC = Calc.linePlaneIntersection(infront[0], behind[0], nearPlane);
+                    let intersectionBC = Calc.linePlaneIntersection(infront[1], behind[0], nearPlane);
 
                     if (intersectionAC != null && intersectionBC != null) {
                         depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
@@ -238,8 +253,8 @@ function draw() {
                     }
                 }
                 else if(infront.length == 1){
-                    let intersectionAB = linePlaneIntersection(infront[0], behind[0], nearPlane);
-                    let intersectionAC = linePlaneIntersection(infront[0], behind[1], nearPlane);
+                    let intersectionAB = Calc.linePlaneIntersection(infront[0], behind[0], nearPlane);
+                    let intersectionAC = Calc.linePlaneIntersection(infront[0], behind[1], nearPlane);
                     
                     if (intersectionAB != null && intersectionAC != null) {
                         depthClippedPoints.push([infront[0].x, infront[0].y, infront[0].z, 1]);
@@ -250,17 +265,17 @@ function draw() {
 
                 // Matrix multiplications
                 for (let k = 0; k < depthClippedPoints.length; k++) {
-                    let translation = matrixMultipliation(translationMatrix, depthClippedPoints[k]);
-                    let rotate = matrixMultipliation(rotateMatrix, translation);
-                    let projection = matrixMultipliation(projectionMatrix, rotate);
-                
+
+                    const translation = Vector4d.dot(translationMatrix, depthClippedPoints[k]);
+                    const rotate      = Vector4d.dot(rotateMatrix,      translation);
+                    const projection  = Vector4d.dot(projectionMatrix,  rotate);
+
                     if (projection[3] < 0) {
-            
                         const x = projection[0] / projection[3];
                         const y = projection[1] / projection[3];
                         const z = projection[2] / projection[3];
                         
-                        normalizedPoints.push([(x * width / 2) , (y * height / 2),z]);
+                        normalizedPoints.push([ (x*width / 2), (y*height / 2), z]);
                     }
                 }
 
@@ -309,6 +324,7 @@ function draw() {
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(drawColors, 3));
 
     const material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    
     // Wireframe
     if(keysToggle.has("KeyF")){
         material.wireframe = true;
@@ -356,27 +372,6 @@ requestAnimationFrame(draw);
 
 // Functions
 
-// Intersections
-function linePlaneIntersection(p1, p2, plane) {
-    let [a,b,c,d] = plane;
-    
-    let denominator = a * (p2.x - p1.x) + b * (p2.y - p1.y) + c * (p2.z - p1.z);
-    
-    if (denominator == 0) {
-      return null;
-    }
-    
-    let t = -(a * p1.x + b * p1.y + c * p1.z + d) / denominator;
-  
-    let intersectionPoint = {
-      x: p1.x + t * (p2.x - p1.x),
-      y: p1.y + t * (p2.y - p1.y),
-      z: p1.z + t * (p2.z - p1.z),
-    };
-
-    return intersectionPoint;
-}
-
 // Key down
 function keyLoop(projectionMatrixInvers, rotateMatrixInvers) {
     let d = [0, 0, 0, 0];
@@ -402,24 +397,10 @@ function keyLoop(projectionMatrixInvers, rotateMatrixInvers) {
         console.clear();
     }
 
-    let dr = matrixMultipliation(projectionMatrixInvers, d);
-    let dw = matrixMultipliation(rotateMatrixInvers, dr);
+    let dr = Vector4d.dot(projectionMatrixInvers, d);
+    let dw = Vector4d.dot(rotateMatrixInvers, dr);
     tx += dw[0];
     tz += dw[2];
-}
-
-// Matrix Multipliation
-function matrixMultipliation(projection, vertex) {
-    let result = [];
-    
-    for (let v = 0; v < projection.length; v++) {
-        result.push(projection[v][0] * vertex[0] + 
-                    projection[v][1] * vertex[1] + 
-                    projection[v][2] * vertex[2] + 
-                    projection[v][3] * vertex[3]);
-    }
-
-    return result;
 }
 
 // Load object
