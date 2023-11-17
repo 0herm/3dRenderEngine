@@ -84,6 +84,9 @@ function draw() {
         scene.remove(scene.children[0]); 
     }
 
+    const width = canvas.width;
+    const height = canvas.height; 
+
     let informationTab = []; 
     informationPre.innerHTML = "";
     let drawPoints = [];
@@ -253,26 +256,16 @@ function draw() {
                 
                     if (projection[3] < 0) {
             
-                        let x = projection[0] / projection[3];
-                        let y = projection[1] / projection[3];
-                        let z = projection[2] / projection[3];
+                        const x = projection[0] / projection[3];
+                        const y = projection[1] / projection[3];
+                        const z = projection[2] / projection[3];
                         
-                        normalizedPoints.push([x,y,z]);
+                        normalizedPoints.push([(x * width / 2) , (y * height / 2),z]);
                     }
                 }
 
-                // Clipping X, Y
-                for (let l = 0; l < normalizedPoints.length; l++){
-
-                    let x = normalizedPoints[l][0];
-                    let y = normalizedPoints[l][1];
-                    let z = normalizedPoints[l][2];
-            
-                    projectionPoints.push([ (x * canvas.width / 2) , (y * canvas.height / 2), z ]);
-                }
-
                 // Draw
-                if(projectionPoints.length >= 3){
+                if(normalizedPoints.length >= 3){
                     const rgbValue = objects[i].colorValues();
 
                     // Light ray 
@@ -285,18 +278,18 @@ function draw() {
                                      rgbValue[1] * shading,
                                      rgbValue[2] * shading];
                     
-                    drawPoints.push(projectionPoints[0][0], -projectionPoints[0][1], -projectionPoints[0][2],
-                                    projectionPoints[1][0], -projectionPoints[1][1], -projectionPoints[1][2],
-                                    projectionPoints[2][0], -projectionPoints[2][1], -projectionPoints[2][2]      
+                    drawPoints.push(normalizedPoints[0][0], -normalizedPoints[0][1], -normalizedPoints[0][2],
+                                    normalizedPoints[1][0], -normalizedPoints[1][1], -normalizedPoints[1][2],
+                                    normalizedPoints[2][0], -normalizedPoints[2][1], -normalizedPoints[2][2]      
                                     );
                     drawColors.push(faceColor[0], faceColor[1], faceColor[2],
                                     faceColor[0], faceColor[1], faceColor[2],
                                     faceColor[0], faceColor[1], faceColor[2]    
                                     );
-                    if(projectionPoints.length == 6){
-                        drawPoints.push(projectionPoints[3][0], -projectionPoints[3][1], -projectionPoints[0][2],
-                                        projectionPoints[4][0], -projectionPoints[4][1], -projectionPoints[1][2],
-                                        projectionPoints[5][0], -projectionPoints[5][1], -projectionPoints[2][2]
+                    if(normalizedPoints.length == 6){
+                        drawPoints.push(normalizedPoints[3][0], -normalizedPoints[3][1], -normalizedPoints[0][2],
+                                        normalizedPoints[4][0], -normalizedPoints[4][1], -normalizedPoints[1][2],
+                                        normalizedPoints[5][0], -normalizedPoints[5][1], -normalizedPoints[2][2]
                                         );
                         drawColors.push(faceColor[0], faceColor[1], faceColor[2],
                                         faceColor[0], faceColor[1], faceColor[2],
