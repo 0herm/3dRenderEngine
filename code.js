@@ -1,12 +1,7 @@
-// Screen 
-const width = canvas.width;
-const height = canvas.height; 
-
-
-
 // Scene
 let scene = new THREE.Scene();
 scene.background = new THREE.Color(0xe0ffff);
+
 
 // Render
 var renderer = new THREE.WebGLRenderer();
@@ -14,10 +9,12 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 renderer.domElement.id = "canvas";
 
+
 // Camera
 var camera = new THREE.OrthographicCamera(  window.innerWidth  / -2, window.innerWidth /   2,
                                             window.innerHeight / 2 , window.innerHeight / -2, 1, 500);
 camera.position.set(0, 0, 100);
+
 
 // Camera projection
 const a = canvas.height / canvas.width;
@@ -27,15 +24,21 @@ const zFar = 100;
 const zNear = 1;
 const q = zFar / (zFar - zNear);
 
+
 // Camera pos 
 let tx = 0;
 let ty = 10;
 let tz = -5;
 
+
 // Camera angle
 let angleX = 0 * Math.PI / 180;
 let angleY = 0 * Math.PI / 180;
 
+
+// Screen 
+const width = canvas.width;
+const height = canvas.height; 
 
 
 // Button Pressed
@@ -43,13 +46,11 @@ let keysPressed = new Set();
 let keysToggle = new Set();
 
 
-
 // FPS
 let d = new Date();
 let lastTime = d.getTime()/1000;
 let frames = 0;
 let fps;
-
 
 
 // Information
@@ -62,14 +63,13 @@ informationPre.style.left = 10 + 'px';
 document.body.appendChild(informationPre);
 
 
-
 // Light 
 const sunVector = [0,1,0];
 
 
-
 // Objects
 let objects = [];
+
 
 // Axis
 objects.push(new Entity([new Triangle(0,0,0,10,0,2,10,0,0),new Triangle(0,0,0,2,0,2,10,0,2)]));
@@ -81,19 +81,9 @@ objects[objects.length - 1].color = [0,255,0];
 objects.push(new Entity([new Triangle(0,0,0,2,10,2,0,10,0),new Triangle(0,0,0,2,0,2,2,10,2)]));
 objects[objects.length - 1].color = [0,255,0];
 
-// Cube 
-// loadObject(cube);
-
-// Space ship
-// loadObject(spaceShip);
 
 // Utah teapot 
 loadObject(teapot);
-
-// Terrain
-loadObject(terrain);
-objects[objects.length - 1].offset = [80,0,80];
-
 
 
 function draw() {
